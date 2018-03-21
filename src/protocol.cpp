@@ -63,7 +63,7 @@ bool CMessageHeader::IsValid() const
     // Message size
     if (nMessageSize > MAX_SIZE)
     {
-        LogPrintf("CMessageHeader::IsValid() : (%s, %" PRIszu " bytes) nMessageSize > MAX_SIZE\n", GetCommand(), nMessageSize); // PHS %u 를 %" PRIszu " 로
+        LogPrintf("CMessageHeader::IsValid() : (%s, %u bytes) nMessageSize > MAX_SIZE\n", GetCommand(), nMessageSize); // PHS %u 를 %u 로
         return false;
     }
 
@@ -131,7 +131,7 @@ bool CInv::IsKnownType() const
 const char* CInv::GetCommand() const
 {
     if (!IsKnownType())
-        throw std::out_of_range(strprintf("CInv::GetCommand() : type=%" PRI64d " unknown type", type));
+        throw std::out_of_range(strprintf("CInv::GetCommand() : type=%d unknown type", type));
     return ppszTypeName[type];
 }
 

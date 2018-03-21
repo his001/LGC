@@ -337,7 +337,7 @@ const char* GetOpName(opcodetype opcode);
 inline std::string ValueString(const std::vector<unsigned char>& vch)
 {
     if (vch.size() <= 4)
-        return strprintf("%" PRI64d "", CBigNum(vch).getint());
+        return strprintf("%d", CBigNum(vch).getint());
     else
         return HexStr(vch);
 }

@@ -257,9 +257,9 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
                     
                     if (fDebug)
                     {
-                        printf("Stealth send to generated pubkey %" PRIszu ": %s\n", pkSendTo.size(), HexStr(pkSendTo).c_str()); // PHS
+                        printf("Stealth send to generated pubkey %u: %s\n", pkSendTo.size(), HexStr(pkSendTo).c_str()); // PHS
                         printf("hash %s\n", addrTo.ToString().c_str());
-                        printf("ephem_pubkey %" PRIszu ": %s\n", ephem_pubkey.size(), HexStr(ephem_pubkey).c_str()); // PHS
+                        printf("ephem_pubkey %u: %s\n", ephem_pubkey.size(), HexStr(ephem_pubkey).c_str()); // PHS
                     };
                     
                     CScript scriptPubKey;
@@ -367,7 +367,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
                 pos++;
             
             char key[64];
-            if (snprintf(key, sizeof(key), "n_%" PRIszu "", pos) < 1) // PHS %u 를 %" PRIszu " 로
+            if (snprintf(key, sizeof(key), "n_%u", pos) < 1) // PHS %u 를 %u 로
             {
                 printf("CreateStealthTransaction(): Error creating narration key.");
                 continue;

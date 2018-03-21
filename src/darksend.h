@@ -225,7 +225,7 @@ class CDarksendSession
 class CDarkSendPool
 {
 public:
-    static const int MIN_PEER_PROTO_VERSION = 60020;
+    static const int MIN_PEER_PROTO_VERSION = 10010; // PHS 60020
 
     // clients entries
     std::vector<CDarkSendEntry> myEntries;
@@ -292,7 +292,7 @@ public:
 
     void InitCollateralAddress(){
         std::string strAddress = "";
-            strAddress = "8TSV23mk6whxTHjritUD1RotLxX6KG9yGN";
+            strAddress = "LTXqjHNf9pAveptnCpshANNqudoYAEDvme"; //8TSV23mk6whxTHjritUD1RotLxX6KG9yGN
         SetCollateralAddress(strAddress);
     }
 
@@ -347,7 +347,7 @@ public:
             return;
         }
 
-        LogPrintf("CDarkSendPool::UpdateState() == %" PRI64d " | %" PRI64d " \n", state, newState);
+        LogPrintf("CDarkSendPool::UpdateState() == %d | %d \n", state, newState);
         if(state != newState){
             lastTimeChanged = GetTimeMillis();
             if(fMasterNode) {

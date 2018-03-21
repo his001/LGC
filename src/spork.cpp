@@ -1,4 +1,4 @@
-// Copyright (c) 2015 The LGC developers
+// Copyright (c) 2018 The LGC developers
 // Copyright (c) 2009-2012 The Darkcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -42,14 +42,14 @@ void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
         uint256 hash = spork.GetHash();
         if(mapSporks.count(hash) && mapSporksActive.count(spork.nSporkID)) {
             if(mapSporksActive[spork.nSporkID].nTimeSigned >= spork.nTimeSigned){
-                if(fDebug) LogPrintf("spork - seen %s block %" PRI64d " \n", hash.ToString().c_str(), pindexBest->nHeight);
+                if(fDebug) LogPrintf("spork - seen %s block %d \n", hash.ToString().c_str(), pindexBest->nHeight);
                 return;
             } else {
-                if(fDebug) LogPrintf("spork - got updated spork %s block %" PRI64d " \n", hash.ToString().c_str(), pindexBest->nHeight);
+                if(fDebug) LogPrintf("spork - got updated spork %s block %d \n", hash.ToString().c_str(), pindexBest->nHeight);
             }
         }
 
-        LogPrintf("spork - new %s ID %" PRI64d " Time %" PRI64d " bestHeight %" PRI64d "\n", hash.ToString().c_str(), spork.nSporkID, spork.nValue, pindexBest->nHeight);
+        LogPrintf("spork - new %s ID %d Time %d bestHeight %d\n", hash.ToString().c_str(), spork.nSporkID, spork.nValue, pindexBest->nHeight);
 
         if(!sporkManager.CheckSignature(spork)){
             LogPrintf("spork - invalid signature\n");
@@ -88,7 +88,7 @@ bool IsSporkActive(int nSporkID)
         if(nSporkID == SPORK_2_MAX_VALUE) r = SPORK_2_MAX_VALUE_DEFAULT;
         if(nSporkID == SPORK_3_REPLAY_BLOCKS) r = SPORK_3_REPLAY_BLOCKS_DEFAULT;
 
-        if(r == 0 && fDebug) LogPrintf("GetSpork::Unknown Spork %" PRI64d "\n", nSporkID);
+        if(r == 0 && fDebug) LogPrintf("GetSpork::Unknown Spork %d\n", nSporkID);
     }
     if(r == 0) r = 4070908800; //return 2099-1-1 by default
 
@@ -107,7 +107,7 @@ int GetSporkValue(int nSporkID)
         if(nSporkID == SPORK_2_MAX_VALUE) r = SPORK_2_MAX_VALUE_DEFAULT;
         if(nSporkID == SPORK_3_REPLAY_BLOCKS) r = SPORK_3_REPLAY_BLOCKS_DEFAULT;
 
-        if(r == 0 && fDebug) LogPrintf("GetSpork::Unknown Spork %" PRI64d "\n", nSporkID);
+        if(r == 0 && fDebug) LogPrintf("GetSpork::Unknown Spork %d\n", nSporkID);
     }
 
     return r;

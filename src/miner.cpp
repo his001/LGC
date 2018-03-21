@@ -355,7 +355,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
         nLastBlockSize = nBlockSize;
 
         if (fDebug && GetBoolArg("-printpriority", false))
-            LogPrintf("CreateNewBlock(): total size %" PRIszu "\n", nBlockSize); // PHS %u 를 %" PRIszu " 로
+            LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize); // PHS %u 를 %u 로
 // >LGC<
         if (!fProofOfStake)
             pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(nFees, nHeight);

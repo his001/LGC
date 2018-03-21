@@ -720,7 +720,7 @@ std::string CNetAddr::ToStringIP() const
             return std::string(name);
     }
     if (IsIPv4())
-        return strprintf("%" PRIszu ".%" PRIszu ".%" PRIszu ".%" PRIszu "", GetByte(3), GetByte(2), GetByte(1), GetByte(0)); // PHS %u 를 %" PRIszu " 로
+        return strprintf("%u.%u.%u.%u", GetByte(3), GetByte(2), GetByte(1), GetByte(0)); // PHS %u 를 %u 로
     else
         return strprintf("%x:%x:%x:%x:%x:%x:%x:%x",
                          GetByte(15) << 8 | GetByte(14), GetByte(13) << 8 | GetByte(12),
@@ -1063,7 +1063,7 @@ std::vector<unsigned char> CService::GetKey() const
 
 std::string CService::ToStringPort() const
 {
-    return strprintf("%" PRIszu "", port); // PHS %u 를 %" PRIszu " 로
+    return strprintf("%u", port); // PHS %u 를 %u 로
 }
 
 std::string CService::ToStringIPPort() const

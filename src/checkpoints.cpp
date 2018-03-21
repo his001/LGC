@@ -27,10 +27,10 @@ namespace Checkpoints
     //
     static MapCheckpoints mapCheckpoints =
         boost::assign::map_list_of
-        ( 0, Params().HashGenesisBlock() )
-        (10,   uint256("0xe653e137fcf430648f4e02172be2926fa60cf2d2b408c5c127fb0d3c8a384051") )
-        (20,   uint256("0x22f69c926e860df361f25857beef751b90b8cb8811757ca804467d449b67c313") )
-        (35425,   uint256("0xe417f9c423b3f37171e3f5597bbe8b05183d22b62d302b660c934e701e2380b7") )
+        (0, Params().HashGenesisBlock() )
+        //(1,   uint256("0x00bd68865b404a6b804147fe0ab568f01e437833c323a46d6f30e9bf33726ea7") )
+        //(20,   uint256("0x22f69c926e860df361f25857beef751b90b8cb8811757ca804467d449b67c313") )
+        //(35425,   uint256("0xe417f9c423b3f37171e3f5597bbe8b05183d22b62d302b660c934e701e2380b7") )
     ;
 
     // TestNet has no checkpoints
@@ -42,16 +42,17 @@ namespace Checkpoints
 
         MapCheckpoints::const_iterator i = checkpoints.find(nHeight);
         if (i == checkpoints.end()) return true;
-        return hash == i->second;
+        return hash == i->second; //PHS 원복 필요
+        //return true;
     }
 
     int GetTotalBlocksEstimate()
     {
         MapCheckpoints& checkpoints = (TestNet() ? mapCheckpointsTestnet : mapCheckpoints);
 
-        if (checkpoints.empty())
-            return 0;
-        return checkpoints.rbegin()->first;
+        if (checkpoints.empty()){ return 0;}
+        return checkpoints.rbegin()->first;  //PHS 원복 필요
+        //return 0;
     }
 
     CBlockIndex* GetLastCheckpoint(const std::map<uint256, CBlockIndex*>& mapBlockIndex)
@@ -63,7 +64,10 @@ namespace Checkpoints
             const uint256& hash = i.second;
             std::map<uint256, CBlockIndex*>::const_iterator t = mapBlockIndex.find(hash);
             if (t != mapBlockIndex.end())
-                return t->second;
+            {
+                return t->second;  //PHS 원복 필요
+                //return NULL;
+            }
         }
         return NULL;
     }
@@ -344,7 +348,7 @@ namespace Checkpoints
 }
 
 // ppcoin: sync-checkpoint master key
-const std::string CSyncCheckpoint::strMasterPubKey = "04d25c0c9944b494cb9a09de6e75b8c20b7ee577701cdd9bff20d4ebd54c35cde823249ae463cf1514c29791fbaf30d1bbb81631c3b965d696f98e327e0699705f";
+const std::string CSyncCheckpoint::strMasterPubKey = "0000000c9944b494cb9a09de6e75b8c20b7ee577701cdd9bff20d4ebd54c35cde823249ae463cf1514c29791fbaf30d1bbb81631c3b965d696f98e327e0699705f"; //"04d25c0c9944b494cb9a09de6e75b8c20b7ee577701cdd9bff20d4ebd54c35cde823249ae463cf1514c29791fbaf30d1bbb81631c3b965d696f98e327e0699705f";
 
 std::string CSyncCheckpoint::strMasterPrivKey = "";
 

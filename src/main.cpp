@@ -195,7 +195,7 @@ bool AddOrphanTx(const CTransaction& tx)
 
     if (nSize > 5000)
     {
-        LogPrint("mempool", "ignoring large orphan tx (size: %" PRIszu ", hash: %s)\n", nSize, hash.ToString()); // PHS %u 를 %" PRIszu " 로
+        LogPrint("mempool", "ignoring large orphan tx (size: %u, hash: %s)\n", nSize, hash.ToString()); // PHS %u 를 %u 로
         return false;
     }
 
@@ -203,7 +203,7 @@ bool AddOrphanTx(const CTransaction& tx)
     BOOST_FOREACH(const CTxIn& txin, tx.vin)
         mapOrphanTransactionsByPrev[txin.prevout.hash].insert(hash);
 
-    LogPrint("mempool", "stored orphan tx %s (mapsz %" PRIszu ")\n", hash.ToString(), // PHS %u 를 %" PRIszu " 로
+    LogPrint("mempool", "stored orphan tx %s (mapsz %u)\n", hash.ToString(), // PHS %u 를 %u 로
         mapOrphanTransactions.size());
     return true;
 }
@@ -690,7 +690,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree,
         nSigOps += GetP2SHSigOpCount(tx, mapInputs);
         if (nSigOps > MAX_TX_SIGOPS)
             return tx.DoS(0,
-                          error("AcceptToMemoryPool : too many sigops %s, %" PRI64d " > %" PRI64d "",
+                          error("AcceptToMemoryPool : too many sigops %s, %d > %d",
                                 hash.ToString(), nSigOps, MAX_TX_SIGOPS));
 
         int64_t nFees = tx.GetValueIn(mapInputs)-tx.GetValueOut();
@@ -699,7 +699,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree,
         // Don't accept it if it can't get into a block
         int64_t txMinFee = GetMinFee(tx, 1000, GMF_RELAY, nSize);
         if ((fLimitFree && nFees < txMinFee) || (!fLimitFree && nFees < MIN_TX_FEE))
-            return error("AcceptToMemoryPool : not enough fees %s, %" PRI64d " < %" PRI64d , // 기존 %" PRI64d " 를 PRI64d로 PHS [%" PRI64d " < %" PRI64d "",]
+            return error("AcceptToMemoryPool : not enough fees %s, %d < %" PRI64d , // 기존 %d 를 PRI64d로 PHS [%d < %d",]
                          hash.ToString(),
                          nFees, txMinFee);
 
@@ -754,7 +754,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree,
 
     SyncWithWallets(tx, NULL);
 
-    LogPrint("mempool", "AcceptToMemoryPool : accepted %s (poolsz %" PRIszu ")\n", // PHS %u 를 %" PRIszu " 로
+    LogPrint("mempool", "AcceptToMemoryPool : accepted %s (poolsz %u)\n", // PHS %u 를 %u 로
            hash.ToString(),
            pool.mapTx.size());
     return true;
@@ -838,7 +838,7 @@ bool AcceptableInputs(CTxMemPool& pool, const CTransaction &txo, bool fLimitFree
         nSigOps += GetP2SHSigOpCount(tx, mapInputs);
         if (nSigOps > MAX_TX_SIGOPS)
             return tx.DoS(0,
-                          error("AcceptableInputs : too many sigops %s, %" PRI64d " > %" PRI64d "",
+                          error("AcceptableInputs : too many sigops %s, %d > %d",
                                 hash.ToString(), nSigOps, MAX_TX_SIGOPS));
 
         int64_t nFees = tx.GetValueIn(mapInputs)-tx.GetValueOut();
@@ -847,7 +847,7 @@ bool AcceptableInputs(CTxMemPool& pool, const CTransaction &txo, bool fLimitFree
         // Don't accept it if it can't get into a block
         int64_t txMinFee = GetMinFee(tx, 1000, GMF_RELAY, nSize);
         if ((fLimitFree && nFees < txMinFee) || (!fLimitFree && nFees < MIN_TX_FEE))
-            return error("AcceptableInputs : not enough fees %s, %" PRI64d " < %" PRI64d "",
+            return error("AcceptableInputs : not enough fees %s, %d < %d",
                          hash.ToString(),
                          nFees, txMinFee);
 
@@ -883,7 +883,7 @@ bool AcceptableInputs(CTxMemPool& pool, const CTransaction &txo, bool fLimitFree
     }
 
 
-    LogPrint("mempool", "AcceptableInputs : accepted %s (poolsz %" PRIszu ")\n", // PHS %u 를 %" PRIszu " 로
+    LogPrint("mempool", "AcceptableInputs : accepted %s (poolsz %u)\n", // PHS %u 를 %u 로
            hash.ToString(),
            pool.mapTx.size());
     return true;
@@ -1153,7 +1153,7 @@ int64_t GetProofOfWorkReward(int64_t nFees, unsigned int nHeight)
         nSubsidy = 7075 * COIN;
     }
 
-    LogPrint("creation", "GetProofOfWorkReward() : create=%s nSubsidy=%" PRI64d "\n", FormatMoney(nSubsidy), nSubsidy);
+    LogPrint("creation", "GetProofOfWorkReward() : create=%s nSubsidy=%d\n", FormatMoney(nSubsidy), nSubsidy);
 
     return nSubsidy + nFees;
 }
@@ -1167,7 +1167,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, unsigned int nHei
     nSubsidy = nCoinAge * COIN_YEAR_REWARD * 33 / (365 * 33 + 8);
 
 
-    LogPrint("creation", "GetProofOfStakeReward(): create=%s nCoinAge=%" PRI64d " \n", FormatMoney(nSubsidy), nCoinAge); // PHS
+    LogPrint("creation", "GetProofOfStakeReward(): create=%s nCoinAge=%d \n", FormatMoney(nSubsidy), nCoinAge); // PHS
 
     return nSubsidy + nFees;
 }
@@ -1307,11 +1307,11 @@ void Misbehaving(NodeId pnode, int howmuch)
             int banscore = GetArg("-banscore", 100);
             if (pn->nMisbehavior >= banscore && pn->nMisbehavior - howmuch < banscore)
             {
-                LogPrintf("Misbehaving: %s (%" PRI64d " -> %" PRI64d ") BAN THRESHOLD EXCEEDED\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
+                LogPrintf("Misbehaving: %s (%d -> %d) BAN THRESHOLD EXCEEDED\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
                 //pn->fShouldBan = true;
             } 
             else
-                LogPrintf("Misbehaving: %s (%" PRI64d " -> %" PRI64d ")\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
+                LogPrintf("Misbehaving: %s (%d -> %d)\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
 
             break;
         }
@@ -1329,11 +1329,11 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
     uint256 nBestInvalidBlockTrust = pindexNew->nChainTrust - pindexNew->pprev->nChainTrust;
     uint256 nBestBlockTrust = pindexBest->nHeight != 0 ? (pindexBest->nChainTrust - pindexBest->pprev->nChainTrust) : pindexBest->nChainTrust;
 
-    LogPrintf("InvalidChainFound: invalid block=%s  height=%" PRI64d "  trust=%s  blocktrust=%" PRI64d "  date=%s\n",
+    LogPrintf("InvalidChainFound: invalid block=%s  height=%d  trust=%s  blocktrust=%d  date=%s\n",
       pindexNew->GetBlockHash().ToString(), pindexNew->nHeight,
       CBigNum(pindexNew->nChainTrust).ToString(), nBestInvalidBlockTrust.Get64(),
       DateTimeStrFormat("%x %H:%M:%S", pindexNew->GetBlockTime()));
-    LogPrintf("InvalidChainFound:  current best=%s  height=%" PRI64d "  trust=%s  blocktrust=%" PRI64d "  date=%s\n",
+    LogPrintf("InvalidChainFound:  current best=%s  height=%d  trust=%s  blocktrust=%d  date=%s\n",
       hashBestChain.ToString(), nBestHeight,
       CBigNum(pindexBest->nChainTrust).ToString(),
       nBestBlockTrust.Get64(),
@@ -1449,7 +1449,7 @@ bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTes
             // Revisit this if/when transaction replacement is implemented and allows
             // adding inputs:
             fInvalid = true;
-            return DoS(100, error("FetchInputs() : %s prevout.n out of range %" PRI64d " %" PRIszu " %" PRIszu " prev tx %s\n%s", GetHash().ToString(), prevout.n, txPrev.vout.size(), txindex.vSpent.size(), prevout.hash.ToString(), txPrev.ToString())); // PHS %u 를 %" PRIszu " 로
+            return DoS(100, error("FetchInputs() : %s prevout.n out of range %d %u %u prev tx %s\n%s", GetHash().ToString(), prevout.n, txPrev.vout.size(), txindex.vSpent.size(), prevout.hash.ToString(), txPrev.ToString())); // PHS %u 를 %u 로
         }
     }
 
@@ -1502,13 +1502,13 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs, map<uint256, CTx
             CTransaction& txPrev = inputs[prevout.hash].second;
 
             if (prevout.n >= txPrev.vout.size() || prevout.n >= txindex.vSpent.size())
-                return DoS(100, error("ConnectInputs() : %s prevout.n out of range %" PRI64d " %" PRIszu " %" PRIszu " prev tx %s\n%s", GetHash().ToString(), prevout.n, txPrev.vout.size(), txindex.vSpent.size(), prevout.hash.ToString(), txPrev.ToString())); // PHS %u 를 %" PRIszu " 로
+                return DoS(100, error("ConnectInputs() : %s prevout.n out of range %d %u %u prev tx %s\n%s", GetHash().ToString(), prevout.n, txPrev.vout.size(), txindex.vSpent.size(), prevout.hash.ToString(), txPrev.ToString())); // PHS %u 를 %u 로
 
             // If prev is coinbase or coinstake, check that it's matured
             if (txPrev.IsCoinBase() || txPrev.IsCoinStake())
                 for (const CBlockIndex* pindex = pindexBlock; pindex && pindexBlock->nHeight - pindex->nHeight < nCoinbaseMaturity; pindex = pindex->pprev)
                     if (pindex->nBlockPos == txindex.pos.nBlockPos && pindex->nFile == txindex.pos.nFile)
-                        return error("ConnectInputs() : tried to spend %s at depth %" PRI64d "", txPrev.IsCoinBase() ? "coinbase" : "coinstake", pindexBlock->nHeight - pindex->nHeight);
+                        return error("ConnectInputs() : tried to spend %s at depth %d", txPrev.IsCoinBase() ? "coinbase" : "coinstake", pindexBlock->nHeight - pindex->nHeight);
 
             // ppcoin: check transaction timestamp
             if (txPrev.nTime > nTime)
@@ -1836,8 +1836,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     int64_t nTime1 = GetTimeMicros(); nTimeConnect += nTime1 - nTimeStart;
     if(fDebug)
     {
-        LogPrintf("bench      - Connect %" PRIszu " transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)vtx.size(), 0.001 * (nTime1 - nTimeStart), 0.001 * (nTime1 - nTimeStart) / vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime1 - nTimeStart) / (nInputs-1), nTimeConnect * 0.000001); // PHS %u 를 %" PRIszu " 로
-        LogPrintf("bench      - %" PRIszu " transaction validations cached\n", nTxCacheHits); // PHS %u 를 %" PRIszu " 로
+        LogPrintf("bench      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)vtx.size(), 0.001 * (nTime1 - nTimeStart), 0.001 * (nTime1 - nTimeStart) / vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime1 - nTimeStart) / (nInputs-1), nTimeConnect * 0.000001); // PHS %u 를 %u 로
+        LogPrintf("bench      - %u transaction validations cached\n", nTxCacheHits); // PHS %u 를 %u 로
     }
 
     if (IsProofOfWork())
@@ -1845,7 +1845,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         int64_t nReward = GetProofOfWorkReward(nFees,pindex->nHeight);
         // Check coinbase reward
         if (vtx[0].GetValueOut() > nReward)
-            return DoS(50, error("ConnectBlock() : coinbase reward exceeded (actual=%" PRI64d " vs calculated=%" PRI64d ")",
+            return DoS(50, error("ConnectBlock() : coinbase reward exceeded (actual=%d vs calculated=%d)",
                    vtx[0].GetValueOut(),
                    nReward));
     }
@@ -1859,7 +1859,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         int64_t nCalculatedStakeReward = GetProofOfStakeReward(nCoinAge, nFees, pindex->nHeight);
 
         if (nStakeReward > nCalculatedStakeReward)
-            return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%" PRI64d " vs calculated=%" PRI64d ")", nStakeReward, nCalculatedStakeReward));
+            return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%d vs calculated=%d)", nStakeReward, nCalculatedStakeReward));
     }
 
     // ppcoin: track money supply and mint amount info
@@ -1971,8 +1971,8 @@ bool static Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
         vConnect.push_back(pindex);
     reverse(vConnect.begin(), vConnect.end());
 
-    LogPrintf("REORGANIZE: Disconnect %" PRIszu " blocks; %s..%s\n", vDisconnect.size(), pfork->GetBlockHash().ToString(), pindexBest->GetBlockHash().ToString()); // PHS %u 를 %" PRIszu " 로
-    LogPrintf("REORGANIZE: Connect %" PRIszu " blocks; %s..%s\n", vConnect.size(), pfork->GetBlockHash().ToString(), pindexNew->GetBlockHash().ToString()); // PHS %u 를 %" PRIszu " 로
+    LogPrintf("REORGANIZE: Disconnect %u blocks; %s..%s\n", vDisconnect.size(), pfork->GetBlockHash().ToString(), pindexBest->GetBlockHash().ToString()); // PHS %u 를 %u 로
+    LogPrintf("REORGANIZE: Connect %u blocks; %s..%s\n", vConnect.size(), pfork->GetBlockHash().ToString(), pindexNew->GetBlockHash().ToString()); // PHS %u 를 %u 로
 
     // Disconnect shorter branch
     list<CTransaction> vResurrect;
@@ -2104,7 +2104,7 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
         }
 
         if (!vpindexSecondary.empty())
-            LogPrintf("Postponing %" PRIszu " reconnects\n", vpindexSecondary.size()); // PHS %u 를 %" PRIszu " 로
+            LogPrintf("Postponing %u reconnects\n", vpindexSecondary.size()); // PHS %u 를 %u 로
 
         // Switch to new best branch
         if (!Reorganize(txdb, pindexIntermediate))
@@ -2152,7 +2152,7 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
 
     uint256 nBestBlockTrust = pindexBest->nHeight != 0 ? (pindexBest->nChainTrust - pindexBest->pprev->nChainTrust) : pindexBest->nChainTrust;
 
-    LogPrintf("SetBestChain: new best=%s  height=%" PRI64d "  trust=%s  blocktrust=%" PRI64d "  date=%s\n",
+    LogPrintf("SetBestChain: new best=%s  height=%d  trust=%s  blocktrust=%d  date=%s\n",
       hashBestChain.ToString(), nBestHeight,
       CBigNum(nBestChainTrust).ToString(),
       nBestBlockTrust.Get64(),
@@ -2170,7 +2170,7 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
             pindex = pindex->pprev;
         }
         if (nUpgraded > 0)
-            LogPrintf("SetBestChain: %" PRI64d " of last 100 blocks above version %" PRI64d "\n", nUpgraded, (int)CBlock::CURRENT_VERSION);
+            LogPrintf("SetBestChain: %d of last 100 blocks above version %d\n", nUpgraded, (int)CBlock::CURRENT_VERSION);
         if (nUpgraded > 100/2)
             // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
             strMiscWarning = _("Warning: This version is obsolete, upgrade required!");
@@ -2222,7 +2222,7 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, uint64_t& nCoinAge) const
         int64_t nValueIn = txPrev.vout[txin.prevout.n].nValue;
         bnCentSecond += CBigNum(nValueIn) * (nTime-txPrev.nTime) / CENT;
 
-        LogPrint("coinage", "coin age nValueIn=%" PRI64d " nTimeDiff=%" PRI64d " bnCentSecond=%s\n", nValueIn, nTime - txPrev.nTime, bnCentSecond.ToString());
+        LogPrint("coinage", "coin age nValueIn=%d nTimeDiff=%d bnCentSecond=%s\n", nValueIn, nTime - txPrev.nTime, bnCentSecond.ToString());
     }
 
     CBigNum bnCoinDay = bnCentSecond * CENT / COIN / (24 * 60 * 60);
@@ -2399,7 +2399,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         foundPayee = true; //doesn't require a specific payee
                         foundPaymentAmount = true;
                         foundPaymentAndPayee = true;
-                        if(fDebug) { LogPrintf("CheckBlock() : Using non-specific masternode payments %" PRI64d "\n", pindexBest->nHeight+1); }
+                        if(fDebug) { LogPrintf("CheckBlock() : Using non-specific masternode payments %d\n", pindexBest->nHeight+1); }
                     }
 
                     for (unsigned int i = 0; i < vtx[0].vout.size(); i++) {
@@ -2416,16 +2416,16 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         ExtractDestination(payee, address1);
                         CBitcoinAddress address2(address1);
 
-                        if(fDebug) { LogPrintf("CheckBlock() : Couldn't find masternode payment(%" PRI64d "|%" PRI64d ") or payee(%" PRI64d "|%s) nHeight %" PRI64d ". \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1); }
+                        if(fDebug) { LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1); }
                         return DoS(100, error("CheckBlock() : Couldn't find masternode payment or payee"));
                     } else {
-                        if(fDebug) { LogPrintf("CheckBlock() : Found masternode payment %" PRI64d "\n", pindexBest->nHeight+1); }
+                        if(fDebug) { LogPrintf("CheckBlock() : Found masternode payment %d\n", pindexBest->nHeight+1); }
                     }
                 } else {
-                    if(fDebug) { LogPrintf("CheckBlock() : Is initial download, skipping masternode payment check %" PRI64d "\n", pindexBest->nHeight+1); }
+                    if(fDebug) { LogPrintf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindexBest->nHeight+1); }
                 }
             } else {
-                if(fDebug) { LogPrintf("CheckBlock() : Skipping masternode payment check - nHeight %" PRI64d " Hash %s\n", pindexBest->nHeight+1, GetHash().ToString().c_str()); }
+                if(fDebug) { LogPrintf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindexBest->nHeight+1, GetHash().ToString().c_str()); }
             }
         } else {
             if(fDebug) { LogPrintf("CheckBlock() : pindex is null, skipping masternode payment check\n"); }
@@ -2478,7 +2478,7 @@ bool CBlock::AcceptBlock()
     AssertLockHeld(cs_main);
 
     if (nVersion > CURRENT_VERSION)
-        return DoS(100, error("AcceptBlock() : reject unknown block version %" PRI64d "", nVersion));
+        return DoS(100, error("AcceptBlock() : reject unknown block version %d", nVersion));
 
     // Check for duplicate
     uint256 hash = GetHash();
@@ -2493,15 +2493,15 @@ bool CBlock::AcceptBlock()
     int nHeight = pindexPrev->nHeight+1;
 
     if (IsProtocolV2(nHeight) && nVersion < 7)
-        return DoS(100, error("AcceptBlock() : reject too old nVersion = %" PRI64d "", nVersion));
+        return DoS(100, error("AcceptBlock() : reject too old nVersion = %d", nVersion));
     else if (!IsProtocolV2(nHeight) && nVersion > 6)
-        return DoS(100, error("AcceptBlock() : reject too new nVersion = %" PRI64d "", nVersion));
+        return DoS(100, error("AcceptBlock() : reject too new nVersion = %d", nVersion));
 
     if (IsProofOfWork() && nHeight > Params().LastPOWBlock())
-        return DoS(100, error("AcceptBlock() : reject proof-of-work at height %" PRI64d "", nHeight));
+        return DoS(100, error("AcceptBlock() : reject proof-of-work at height %d", nHeight));
 
     if (IsProofOfStake() && nHeight < POS_START_BLOCK)
-                return DoS(100, error("AcceptBlock() : reject proof-of-stake at height < %" PRI64d "", POS_START_BLOCK));
+                return DoS(100, error("AcceptBlock() : reject proof-of-stake at height < %d", POS_START_BLOCK));
 
     // Check coinbase timestamp
     if (GetBlockTime() > FutureDrift((int64_t)vtx[0].nTime, nHeight) && !IsProofOfWork())
@@ -2509,7 +2509,7 @@ bool CBlock::AcceptBlock()
 
     // Check coinstake timestamp
     if (IsProofOfStake() && !CheckCoinStakeTimestamp(nHeight, GetBlockTime(), (int64_t)vtx[1].nTime))
-        return DoS(50, error("AcceptBlock() : coinstake timestamp violation nTimeBlock=%" PRI64d " nTimeTx=%" PRIszu "", GetBlockTime(), vtx[1].nTime)); // PHS %u 를 %" PRIszu " 로
+        return DoS(50, error("AcceptBlock() : coinstake timestamp violation nTimeBlock=%d nTimeTx=%u", GetBlockTime(), vtx[1].nTime)); // PHS %u 를 %u 로
 
     // Check proof-of-work or proof-of-stake
     if (nBits != GetNextTargetRequired(pindexPrev, IsProofOfStake()))
@@ -2526,7 +2526,7 @@ bool CBlock::AcceptBlock()
 
     // Check that the block chain matches the known block chain up to a checkpoint
     if (!Checkpoints::CheckHardened(nHeight, hash))
-        return DoS(100, error("AcceptBlock() : rejected by hardened checkpoint lock-in at %" PRI64d "", nHeight));
+        return DoS(100, error("AcceptBlock() : rejected by hardened checkpoint lock-in at %d", nHeight));
 
     uint256 hashProof;
     // Verify hash target and signature of coinstake tx
@@ -2645,7 +2645,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // Check for duplicate
     uint256 hash = pblock->GetHash();
     if (mapBlockIndex.count(hash))
-        return error("ProcessBlock() : already have block %" PRI64d " %s", mapBlockIndex[hash]->nHeight, hash.ToString());
+        return error("ProcessBlock() : already have block %d %s", mapBlockIndex[hash]->nHeight, hash.ToString());
     if (mapOrphanBlocks.count(hash))
         return error("ProcessBlock() : already have block (orphan) %s", hash.ToString());
 
@@ -2653,7 +2653,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // Limited duplicity on stake: prevents block flood attack
     // Duplicate stake allowed only when there is orphan child block
     if (pblock->IsProofOfStake() && setStakeSeen.count(pblock->GetProofOfStake()) && !mapOrphanBlocksByPrev.count(hash) && !Checkpoints::WantedByPendingSyncCheckpoint(hash))
-        return error("ProcessBlock() : duplicate proof-of-stake (%s, %" PRI64d ") for block %s", pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
+        return error("ProcessBlock() : duplicate proof-of-stake (%s, %d) for block %s", pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
 
     CBlockIndex* pcheckpoint = Checkpoints::GetLastSyncCheckpoint();
     if (pcheckpoint && pblock->hashPrevBlock != hashBestChain && !Checkpoints::WantedByPendingSyncCheckpoint(hash))
@@ -2696,7 +2696,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // Limited duplicity on stake: prevents block flood attack
                 // Duplicate stake allowed only when there is orphan child block
                 if (setStakeSeenOrphan.count(pblock->GetProofOfStake()) && !mapOrphanBlocksByPrev.count(hash) && !Checkpoints::WantedByPendingSyncCheckpoint(hash))
-                    return error("ProcessBlock() : duplicate proof-of-stake (%s, %" PRI64d ") for orphan block %s", pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
+                    return error("ProcessBlock() : duplicate proof-of-stake (%s, %d) for orphan block %s", pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
             }
             PruneOrphanBlocks();
             COrphanBlock* pblock2 = new COrphanBlock();
@@ -3009,7 +3009,7 @@ void PrintBlockTree()
         // print item
         CBlock block;
         block.ReadFromDisk(pindex);
-        LogPrintf("%" PRI64d " (%" PRIszu ",%" PRIszu ") %s  %08x  %s  mint %7s  tx %" PRIszu "", // PHS %u 를 %" PRIszu " 로
+        LogPrintf("%d (%u,%u) %s  %08x  %s  mint %7s  tx %u", // PHS %u 를 %u 로
             pindex->nHeight,
             pindex->nFile,
             pindex->nBlockPos,
@@ -3094,7 +3094,7 @@ bool LoadExternalBlockFile(FILE* fileIn)
                    __PRETTY_FUNCTION__);
         }
     }
-    LogPrintf("Loaded %i blocks from external file in %" PRI64d "ms\n", nLoaded, GetTimeMillis() - nStart);
+    LogPrintf("Loaded %i blocks from external file in %dms\n", nLoaded, GetTimeMillis() - nStart);
     return nLoaded > 0;
 }
 
@@ -3392,7 +3392,7 @@ void static ProcessGetData(CNode* pfrom)
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
     RandAddSeedPerfmon();
-    LogPrint("net", "received: %s (%" PRIszu " bytes)\n", strCommand, vRecv.size()); // PHS %u 를 %" PRIszu " 로
+    LogPrint("net", "received: %s (%u bytes)\n", strCommand, vRecv.size()); // PHS %u 를 %u 로
     if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0)
     {
         LogPrintf("dropmessagestest DROPPING RECV MESSAGE\n");
@@ -3502,7 +3502,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         pfrom->fSuccessfullyConnected = true;
 
-        LogPrintf("receive version message: version %" PRI64d ", blocks=%" PRI64d ", us=%s, them=%s, peer=%s\n", pfrom->nVersion, pfrom->nStartingHeight, addrMe.ToString(), addrFrom.ToString(), pfrom->addr.ToString());
+        LogPrintf("receive version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", pfrom->nVersion, pfrom->nStartingHeight, addrMe.ToString(), addrFrom.ToString(), pfrom->addr.ToString());
 
         // ppcoin: ask for pending sync-checkpoint if any
         if (!IsInitialBlockDownload())
@@ -3538,7 +3538,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (vAddr.size() > 1000)
         {
             pfrom->Misbehaving(20);
-            return error("message addr size() = %" PRIszu "", vAddr.size()); // PHS %u 를 %" PRIszu " 로
+            return error("message addr size() = %u", vAddr.size()); // PHS %u 를 %u 로
         }
 
         // Store the new addresses
@@ -3600,7 +3600,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (vInv.size() > MAX_INV_SZ)
         {
             pfrom->Misbehaving(20);
-            return error("message inv size() = %" PRIszu "", vInv.size()); // PHS %u 를 %" PRIszu " 로
+            return error("message inv size() = %u", vInv.size()); // PHS %u 를 %u 로
         }
 
         // find last block in inv vector
@@ -3652,11 +3652,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (vInv.size() > MAX_INV_SZ)
         {
             pfrom->Misbehaving(20);
-            return error("message getdata size() = %" PRIszu "", vInv.size()); // PHS %u 를 %" PRIszu " 로
+            return error("message getdata size() = %u", vInv.size()); // PHS %u 를 %u 로
         }
 
         if (fDebug || (vInv.size() != 1))
-            LogPrint("net", "received getdata (%" PRIszu " invsz)\n", vInv.size()); // PHS %u 를 %" PRIszu " 로
+            LogPrint("net", "received getdata (%u invsz)\n", vInv.size()); // PHS %u 를 %u 로
 
         if ((fDebug && vInv.size() > 0) || (vInv.size() == 1))
             LogPrint("net", "received getdata for: %s\n", vInv[0].ToString());
@@ -3681,12 +3681,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (pindex)
             pindex = pindex->pnext;
         int nLimit = 500;
-        LogPrint("net", "getblocks %" PRI64d " to %s limit %" PRI64d "\n", (pindex ? pindex->nHeight : -1), hashStop.ToString(), nLimit);
+        LogPrint("net", "getblocks %d to %s limit %d\n", (pindex ? pindex->nHeight : -1), hashStop.ToString(), nLimit);
         for (; pindex; pindex = pindex->pnext)
         {
             if (pindex->GetBlockHash() == hashStop)
             {
-                LogPrint("net", "  getblocks stopping at %" PRI64d " %s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
+                LogPrint("net", "  getblocks stopping at %d %s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
                 break;
             }
             pfrom->PushInventory(CInv(MSG_BLOCK, pindex->GetBlockHash()));
@@ -3694,7 +3694,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             {
                 // When this block is requested, we'll send an inv that'll make them
                 // getblocks the next batch of inventory.
-                LogPrint("net", "  getblocks stopping at limit %" PRI64d " %s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
+                LogPrint("net", "  getblocks stopping at limit %d %s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
                 pfrom->hashContinue = pindex->GetBlockHash();
                 break;
             }
@@ -3742,7 +3742,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         vector<CBlock> vHeaders;
         int nLimit = 2000;
-        LogPrint("net", "getheaders %" PRI64d " to %s\n", (pindex ? pindex->nHeight : -1), hashStop.ToString());
+        LogPrint("net", "getheaders %d to %s\n", (pindex ? pindex->nHeight : -1), hashStop.ToString());
         for (; pindex; pindex = pindex->pnext)
         {
             vHeaders.push_back(pindex->GetBlockHeader());
@@ -3815,7 +3815,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             // DoS prevention: do not allow mapOrphanTransactions to grow unbounded
             unsigned int nEvicted = LimitOrphanTxSize(MAX_ORPHAN_TRANSACTIONS);
             if (nEvicted > 0)
-                LogPrint("mempool", "mapOrphan overflow, removed %" PRIszu " tx\n", nEvicted); // PHS %u 를 %" PRIszu " 로
+                LogPrint("mempool", "mapOrphan overflow, removed %u tx\n", nEvicted); // PHS %u 를 %u 로
         }
         if (tx.nDoS) pfrom->Misbehaving(tx.nDoS);
     }
@@ -4069,7 +4069,7 @@ bool ProcessMessages(CNode* pfrom)
         memcpy(&nChecksum, &hash, sizeof(nChecksum));
         if (nChecksum != hdr.nChecksum)
         {
-            LogPrintf("ProcessMessages(%s, %" PRIszu " bytes) : CHECKSUM ERROR nChecksum=%08x hdr.nChecksum=%08x\n", // PHS %u 를 %" PRIszu " 로
+            LogPrintf("ProcessMessages(%s, %u bytes) : CHECKSUM ERROR nChecksum=%08x hdr.nChecksum=%08x\n", // PHS %u 를 %u 로
                strCommand, nMessageSize, nChecksum, hdr.nChecksum);
             continue;
         }
@@ -4086,12 +4086,12 @@ bool ProcessMessages(CNode* pfrom)
             if (strstr(e.what(), "end of data"))
             {
                 // Allow exceptions from under-length message on vRecv
-                LogPrintf("ProcessMessages(%s, %" PRIszu " bytes) : Exception '%s' caught, normally caused by a message being shorter than its stated length\n", strCommand, nMessageSize, e.what()); // PHS %u 를 %" PRIszu " 로
+                LogPrintf("ProcessMessages(%s, %u bytes) : Exception '%s' caught, normally caused by a message being shorter than its stated length\n", strCommand, nMessageSize, e.what()); // PHS %u 를 %u 로
             }
             else if (strstr(e.what(), "size too large"))
             {
                 // Allow exceptions from over-long size
-                LogPrintf("ProcessMessages(%s, %" PRIszu " bytes) : Exception '%s' caught\n", strCommand, nMessageSize, e.what()); // PHS %u 를 %" PRIszu " 로
+                LogPrintf("ProcessMessages(%s, %u bytes) : Exception '%s' caught\n", strCommand, nMessageSize, e.what()); // PHS %u 를 %u 로
             }
             else
             {
@@ -4108,7 +4108,7 @@ bool ProcessMessages(CNode* pfrom)
         }
 
         if (!fRet)
-            LogPrintf("ProcessMessage(%s, %" PRIszu " bytes) FAILED\n", strCommand, nMessageSize); // PHS %u 를 %" PRIszu " 로
+            LogPrintf("ProcessMessage(%s, %u bytes) FAILED\n", strCommand, nMessageSize); // PHS %u 를 %u 로
 
         break;
     }

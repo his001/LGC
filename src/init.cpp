@@ -179,7 +179,7 @@ std::string HelpMessage()
     strUsage += "  -proxy=<ip:port>       " + _("Connect through SOCKS5 proxy") + "\n";
     strUsage += "  -tor=<ip:port>         " + _("Use proxy to reach tor hidden services (default: same as -proxy)") + "\n";
     strUsage += "  -dns                   " + _("Allow DNS lookups for -addnode, -seednode and -connect") + "\n";
-    strUsage += "  -port=<port>           " + _("Listen for connections on <port> (default: 15714 or testnet: 25714)") + "\n";
+    strUsage += "  -port=<port>           " + _("Listen for connections on <port> (default: 33814 or testnet: 32714)") + "\n";
     strUsage += "  -maxconnections=<n>    " + _("Maintain at most <n> connections to peers (default: 125)") + "\n";
     strUsage += "  -addnode=<ip>          " + _("Add a node to connect to and attempt to keep the connection open") + "\n";
     strUsage += "  -connect=<ip>          " + _("Connect only to the specified node(s)") + "\n";
@@ -254,7 +254,7 @@ std::string HelpMessage()
     strUsage += "  -checkblocks=<n>       " + _("How many blocks to check at startup (default: 500, 0 = all)") + "\n";
     strUsage += "  -checklevel=<n>        " + _("How thorough the block verification is (0-6, default: 1)") + "\n";
     strUsage += "  -loadblock=<file>      " + _("Imports blocks from external blk000?.dat file") + "\n";
-    strUsage += "  -maxorphanblocks=<n>   " + strprintf(_("Keep at most <n> unconnectable blocks in memory (default: %" PRIszu ")"), DEFAULT_MAX_ORPHAN_BLOCKS) + "\n"; // PHS %u 를 %" PRIszu " 로
+    strUsage += "  -maxorphanblocks=<n>   " + strprintf(_("Keep at most <n> unconnectable blocks in memory (default: %u)"), DEFAULT_MAX_ORPHAN_BLOCKS) + "\n"; // PHS %u 를 %u 로
 
     strUsage += "\n" + _("Block creation options:") + "\n";
     strUsage += "  -blockminsize=<n>      "   + _("Set minimum block size in bytes (default: 0)") + "\n";
@@ -456,8 +456,11 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (mapArgs.count("-timeout"))
     {
         int nNewTimeout = GetArg("-timeout", 5000);
-        if (nNewTimeout > 0 && nNewTimeout < 600000)
+        //if (nNewTimeout > 0 && nNewTimeout < 600000)
+        if (nNewTimeout > 0 && nNewTimeout < 100000)
+        {
             nConnectTimeout = nNewTimeout;
+        }
     }
 
 #ifdef ENABLE_WALLET
@@ -539,7 +542,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             // try moving the database env out of the way
             boost::filesystem::path pathDatabase = GetDataDir() / "database";
-            boost::filesystem::path pathDatabaseBak = GetDataDir() / strprintf("database.%" PRI64d ".bak", GetTime());
+            boost::filesystem::path pathDatabaseBak = GetDataDir() / strprintf("database.%d.bak", GetTime());
             try {
                 boost::filesystem::rename(pathDatabase, pathDatabaseBak);
                 LogPrintf("Moved old %s to %s. Retrying.\n", pathDatabase.string(), pathDatabaseBak.string());
@@ -714,7 +717,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         LogPrintf("Shutdown requested. Exiting.\n");
         return false;
     }
-    LogPrintf(" block index %15%" PRI64d "ms\n", GetTimeMillis() - nStart); // 기존 %d 를 PRI64d로 PHS
+    LogPrintf(" block index %15%dms\n", GetTimeMillis() - nStart); // 기존 %d 를 PRI64d로 PHS
 
     if (GetBoolArg("-printblockindex", false) || GetBoolArg("-printblocktree", false))
     {
@@ -832,7 +835,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             LogPrintf("Rescanning last %i blocks (from block %i)...\n", pindexBest->nHeight - pindexRescan->nHeight, pindexRescan->nHeight);
             nStart = GetTimeMillis();
             pwalletMain->ScanForWalletTransactions(pindexRescan, true);
-            LogPrintf(" rescan      %15%" PRI64d "ms\n", GetTimeMillis() - nStart); // 기존 %d 를 PRI64d로 PHS
+            LogPrintf(" rescan %15%dms\n", GetTimeMillis() - nStart); // 기존 %d 를 PRI64d로 PHS
             pwalletMain->SetBestChain(CBlockLocator(pindexBest));
             nWalletDBUpdated++;
         }
@@ -862,7 +865,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             LogPrintf("Invalid or missing peers.dat; recreating\n");
     }
 
-    LogPrintf("Loaded %i addresses from peers.dat  %" PRI64d "ms\n", // 기존 %d 를 PRI64d로 PHS
+    LogPrintf("Loaded %i addresses from peers.dat  %dms\n", // 기존 %d 를 PRI64d로 PHS
            addrman.size(), GetTimeMillis() - nStart);
 
     // ********************************************************* Step 11: start node
@@ -938,10 +941,10 @@ bool AppInit2(boost::thread_group& threadGroup)
         return InitError("You can not start a masternode in litemode");
     }
 
-    LogPrintf("fLiteMode %" PRI64d "\n", fLiteMode);
-    LogPrintf("nInstantXDepth %" PRI64d "\n", nInstantXDepth);
-    LogPrintf("Darksend rounds %" PRI64d "\n", nDarksendRounds);
-    LogPrintf("Anonymize LGC Amount %" PRI64d "\n", nAnonymizeLGCAmount);
+    LogPrintf("fLiteMode %d\n", fLiteMode);
+    LogPrintf("nInstantXDepth %d\n", nInstantXDepth);
+    LogPrintf("Darksend rounds %d\n", nDarksendRounds);
+    LogPrintf("Anonymize LGC Amount %d\n", nAnonymizeLGCAmount);
 
     /* Denominations
        A note about convertability. Within Darksend pools, each denomination
@@ -988,12 +991,12 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
     //// debug print
-    LogPrintf("mapBlockIndex.size() = %" PRIszu "\n",   mapBlockIndex.size()); // PHS %u 를 %" PRIszu " 로
-    LogPrintf("nBestHeight = %" PRI64d "\n",                   nBestHeight);
+    LogPrintf("mapBlockIndex.size() = %u\n",   mapBlockIndex.size()); // PHS %u 를 %u 로
+    LogPrintf("nBestHeight = %d\n",                   nBestHeight);
 #ifdef ENABLE_WALLET
-    LogPrintf("setKeyPool.size() = %" PRIszu "\n",      pwalletMain ? pwalletMain->setKeyPool.size() : 0); // PHS %u 를 %" PRIszu " 로
-    LogPrintf("mapWallet.size() = %" PRIszu "\n",       pwalletMain ? pwalletMain->mapWallet.size() : 0); // PHS %u 를 %" PRIszu " 로
-    LogPrintf("mapAddressBook.size() = %" PRIszu "\n",  pwalletMain ? pwalletMain->mapAddressBook.size() : 0); // PHS %u 를 %" PRIszu " 로
+    LogPrintf("setKeyPool.size() = %u\n",      pwalletMain ? pwalletMain->setKeyPool.size() : 0); // PHS %u 를 %u 로
+    LogPrintf("mapWallet.size() = %u\n",       pwalletMain ? pwalletMain->mapWallet.size() : 0); // PHS %u 를 %u 로
+    LogPrintf("mapAddressBook.size() = %u\n",  pwalletMain ? pwalletMain->mapAddressBook.size() : 0); // PHS %u 를 %u 로
 #endif
 
     StartNode(threadGroup);

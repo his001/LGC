@@ -18,7 +18,7 @@
         <source>Copyright © 2009-2015 The Bitcoin developers
 Copyright © 2011-2012 PPCoin Developers
 Copyright © 2012-2014 The NovaCoin developers
-Copyright © 2014-2015 The LGC developers</source>
+Copyright © 2017-2018 The LGC developers</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2778,8 +2778,8 @@ for example: alertnotify=echo %%s | mail -s &quot;LGC Alert&quot; admin@foo.com
     </message>
     <message>
         <location line="+6"/>
-        <source>Listen for connections on &lt;port&gt; (default: 15714 or testnet: 25714)</source>
-        <translation>Listen for connections on &lt;port&gt; (default: 15714 or testnet: 25714)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 33814 or testnet: 32714)</source>
+        <translation>Listen for connections on &lt;port&gt; (default: 33814 or testnet: 32714)</translation>
     </message>
     <message>
         <location line="+1"/>

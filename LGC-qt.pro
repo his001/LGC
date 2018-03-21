@@ -41,8 +41,6 @@ OPENSSL_INCLUDE_PATH=C:\deps\openssl-1.0.1l\include
 OPENSSL_LIB_PATH=C:\deps\openssl-1.0.1l
 MINIUPNPC_INCLUDE_PATH=C:\deps
 MINIUPNPC_LIB_PATH=C:\deps\miniupnpc
-#SECP256K1_LIB_PATH = C:\deps\secp256k1\.libs
-#SECP256K1_INCLUDE_PATH = C:\deps\secp256k1\include
 SECP256K1_LIB_PATH = C:\LGC_Full\LGC\src\secp256k1\.libs
 SECP256K1_INCLUDE_PATH = C:\LGC_Full\LGC\src\secp256k1\include
 

@@ -84,7 +84,7 @@ public:
     {
         return strprintf(
                 "CSyncCheckpoint(\n"
-                "    nVersion       = %" PRI64d "\n"
+                "    nVersion       = %d\n"
                 "    hashCheckpoint = %s\n"
                 ")\n",
             nVersion,

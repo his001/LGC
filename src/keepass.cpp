@@ -280,7 +280,7 @@ void CKeePassIntegrator::rpcTestAssociation(bool bTriggerUnlock)
 
     doHTTPPost(request.getJson(), nStatus, sResponse);
 
-    if(fDebug) LogPrintf("CKeePassIntegrator::rpcTestAssociation - send result: status: %" PRI64d " response: %s\n", nStatus, sResponse.c_str());
+    if(fDebug) LogPrintf("CKeePassIntegrator::rpcTestAssociation - send result: status: %d response: %s\n", nStatus, sResponse.c_str());
 }
 
 std::vector<CKeePassIntegrator::CKeePassEntry> CKeePassIntegrator::rpcGetLogins()
@@ -302,7 +302,7 @@ std::vector<CKeePassIntegrator::CKeePassEntry> CKeePassIntegrator::rpcGetLogins(
 
     // Logging of actual response data disabled as to not write passphrase in debug.log. Only enable temporarily when needed
     //if(fDebug) LogPrintf("CKeePassIntegrator::rpcGetLogins - send result: status: %d response: %s\n", nStatus, sResponse.c_str());
-    if(fDebug) LogPrintf("CKeePassIntegrator::rpcGetLogins - send result: status: %" PRI64d "\n", nStatus);
+    if(fDebug) LogPrintf("CKeePassIntegrator::rpcGetLogins - send result: status: %d\n", nStatus);
 
     if(nStatus != 200)
     {
@@ -353,7 +353,7 @@ void CKeePassIntegrator::rpcSetLogin(const SecureString& strWalletPass, const Se
     doHTTPPost(request.getJson(), nStatus, sResponse);
 
 
-    if(fDebug) LogPrintf("CKeePassIntegrator::rpcSetLogin - send result: status: %" PRI64d " response: %s\n", nStatus, sResponse.c_str());
+    if(fDebug) LogPrintf("CKeePassIntegrator::rpcSetLogin - send result: status: %d response: %s\n", nStatus, sResponse.c_str());
 
     if(nStatus != 200)
     {
@@ -396,7 +396,7 @@ void CKeePassIntegrator::rpcAssociate(std::string& sId, SecureString& sKeyBase64
 
     doHTTPPost(request.getJson(), nStatus, sResponse);
 
-    if(fDebug) LogPrintf("CKeePassIntegrator::rpcAssociate - send result: status: %" PRI64d " response: %s\n", nStatus, sResponse.c_str());
+    if(fDebug) LogPrintf("CKeePassIntegrator::rpcAssociate - send result: status: %d response: %s\n", nStatus, sResponse.c_str());
 
     if(nStatus != 200)
     {

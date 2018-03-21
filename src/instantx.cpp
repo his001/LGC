@@ -211,7 +211,7 @@ bool IsIXTXValid(const CTransaction& txCollateral){
     }
 
     if(nValueIn-nValueOut < COIN*0.01) {
-        if(fDebug) LogPrintf ("IsIXTXValid - did not include enough fees in transaction %" PRI64d "\n%s\n", nValueOut-nValueIn, txCollateral.ToString().c_str());
+        if(fDebug) LogPrintf ("IsIXTXValid - did not include enough fees in transaction %d\n%s\n", nValueOut-nValueIn, txCollateral.ToString().c_str());
         return false;
     }
 
@@ -226,7 +226,7 @@ int64_t CreateNewLock(CTransaction tx)
         nTxAge = GetInputAge(i);
         if(nTxAge < 6)
         {
-            LogPrintf("CreateNewLock - Transaction not found / too new: %" PRI64d " / %s\n", nTxAge, tx.GetHash().ToString().c_str());
+            LogPrintf("CreateNewLock - Transaction not found / too new: %d / %s\n", nTxAge, tx.GetHash().ToString().c_str());
             return 0;
         }
     }
@@ -270,14 +270,14 @@ void DoConsensusVote(CTransaction& tx, int64_t nBlockHeight)
 
     if(n > INSTANTX_SIGNATURES_TOTAL)
     {
-        if(fDebug) LogPrintf("InstantX::DoConsensusVote - Masternode not in the top %" PRI64d " (%" PRI64d ")\n", INSTANTX_SIGNATURES_TOTAL, n);
+        if(fDebug) LogPrintf("InstantX::DoConsensusVote - Masternode not in the top %d (%d)\n", INSTANTX_SIGNATURES_TOTAL, n);
         return;
     }
     /*
         nBlockHeight calculated from the transaction is the authoritive source
     */
 
-    if(fDebug) LogPrintf("InstantX::DoConsensusVote - In the top %" PRI64d " (%" PRI64d ")\n", INSTANTX_SIGNATURES_TOTAL, n);
+    if(fDebug) LogPrintf("InstantX::DoConsensusVote - In the top %d (%d)\n", INSTANTX_SIGNATURES_TOTAL, n);
 
     CConsensusVote ctx;
     ctx.vinMasternode = activeMasternode.vin;
@@ -312,7 +312,7 @@ bool ProcessConsensusVote(CConsensusVote& ctx)
 
     int x = GetMasternodeByVin(ctx.vinMasternode);
     if(x != -1){
-        if(fDebug) LogPrintf("InstantX::ProcessConsensusVote - Masternode ADDR %s %" PRI64d "\n", vecMasternodes[x].addr.ToString().c_str(), n);
+        if(fDebug) LogPrintf("InstantX::ProcessConsensusVote - Masternode ADDR %s %d\n", vecMasternodes[x].addr.ToString().c_str(), n);
     }
 
     if(n == -1)
@@ -324,7 +324,7 @@ bool ProcessConsensusVote(CConsensusVote& ctx)
 
     if(n > INSTANTX_SIGNATURES_TOTAL)
     {
-        if(fDebug) LogPrintf("InstantX::ProcessConsensusVote - Masternode not in the top %" PRI64d " (%" PRI64d ") - %s\n", INSTANTX_SIGNATURES_TOTAL, n, ctx.GetHash().ToString().c_str());
+        if(fDebug) LogPrintf("InstantX::ProcessConsensusVote - Masternode not in the top %d (%d) - %s\n", INSTANTX_SIGNATURES_TOTAL, n, ctx.GetHash().ToString().c_str());
         return false;
     }
 
@@ -360,7 +360,7 @@ bool ProcessConsensusVote(CConsensusVote& ctx)
         }
 #endif
 
-        if(fDebug) LogPrintf("InstantX::ProcessConsensusVote - Transaction Lock Votes %" PRI64d " - %s !\n", (*i).second.CountSignatures(), ctx.GetHash().ToString().c_str());
+        if(fDebug) LogPrintf("InstantX::ProcessConsensusVote - Transaction Lock Votes %d - %s !\n", (*i).second.CountSignatures(), ctx.GetHash().ToString().c_str());
 
         if((*i).second.CountSignatures() >= INSTANTX_SIGNATURES_REQUIRED){
             if(fDebug) LogPrintf("InstantX::ProcessConsensusVote - Transaction Lock Is Complete %s !\n", (*i).second.GetHash().ToString().c_str());
@@ -491,7 +491,7 @@ bool CConsensusVote::SignatureValid()
 
     //LogPrintf("verify addr %s \n", vecMasternodes[0].addr.ToString().c_str());
     //LogPrintf("verify addr %s \n", vecMasternodes[1].addr.ToString().c_str());
-    //LogPrintf("verify addr %" PRIszu " %s \n", n, vecMasternodes[n].addr.ToString().c_str());
+    //LogPrintf("verify addr %u %s \n", n, vecMasternodes[n].addr.ToString().c_str());
 
     CScript pubkey;
     pubkey =GetScriptForDestination(vecMasternodes[n].pubkey2.GetID());

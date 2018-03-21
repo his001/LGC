@@ -41,12 +41,15 @@ typedef std::map<std::string, std::string> mapValue_t;
 /** (client) version numbers for particular wallet features */
 enum WalletFeature
 {
-    FEATURE_BASE = 10500, // the earliest version new wallets supports (only useful for getinfo's clientversion output)
+//    FEATURE_BASE = 10500, // the earliest version new wallets supports (only useful for getinfo's clientversion output)
+//    FEATURE_WALLETCRYPT = 40000, // wallet encryption
+//    FEATURE_COMPRPUBKEY = 60000, // compressed public keys
+//    FEATURE_LATEST = 60000
+  FEATURE_BASE = 10001, // the earliest version new wallets supports (only useful for getinfo's clientversion output)
+  FEATURE_WALLETCRYPT = 10000, // wallet encryption
+  FEATURE_COMPRPUBKEY = 10000, // compressed public keys
+  FEATURE_LATEST = 10000
 
-    FEATURE_WALLETCRYPT = 40000, // wallet encryption
-    FEATURE_COMPRPUBKEY = 60000, // compressed public keys
-
-    FEATURE_LATEST = 60000
 };
 
 enum AvailableCoinsType
@@ -581,7 +584,7 @@ public:
             WriteOrderPos(pthis->nOrderPos, pthis->mapValue);
 
             if (nTimeSmart)
-                pthis->mapValue["timesmart"] = strprintf("%" PRIszu "", nTimeSmart); // PHS %u 를 %" PRIszu " 로
+                pthis->mapValue["timesmart"] = strprintf("%u", nTimeSmart); // PHS %u 를 %u 로
         }
 
         nSerSize += SerReadWrite(s, *(CMerkleTx*)this, nType, nVersion,ser_action);
@@ -844,7 +847,7 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("COutput(%s, %" PRI64d ", %" PRI64d ") [%s]", tx->GetHash().ToString(), i, nDepth, FormatMoney(tx->vout[i].nValue));
+        return strprintf("COutput(%s, %d, %d) [%s]", tx->GetHash().ToString(), i, nDepth, FormatMoney(tx->vout[i].nValue));
     }
 
     //Used with Darksend. Will return fees, then denominations, everything else, then very small inputs that aren't fees

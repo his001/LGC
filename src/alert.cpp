@@ -46,22 +46,22 @@ std::string CUnsignedAlert::ToString() const
 {
     std::string strSetCancel;
     BOOST_FOREACH(int n, setCancel)
-        strSetCancel += strprintf("%" PRI64d " ", n);
+        strSetCancel += strprintf("%d ", n);
     std::string strSetSubVer;
     BOOST_FOREACH(std::string str, setSubVer)
         strSetSubVer += "\"" + str + "\" ";
     return strprintf(
         "CAlert(\n"
-        "    nVersion     = %" PRI64d "\n"
-        "    nRelayUntil  = %" PRI64d "\n"  // 기존 %d 를 PRI64d로 PHS
-        "    nExpiration  = %" PRI64d "\n"  // 기존 %d 를 PRI64d로 PHS
-        "    nID          = %" PRI64d "\n"
-        "    nCancel      = %" PRI64d "\n"
+        "    nVersion     = %d\n"
+        "    nRelayUntil  = %d\n"  // 기존 %d 를 PRI64d로 PHS
+        "    nExpiration  = %d\n"  // 기존 %d 를 PRI64d로 PHS
+        "    nID          = %d\n"
+        "    nCancel      = %d\n"
         "    setCancel    = %s\n"
-        "    nMinVer      = %" PRI64d "\n"
-        "    nMaxVer      = %" PRI64d "\n"
+        "    nMinVer      = %d\n"
+        "    nMaxVer      = %d\n"
         "    setSubVer    = %s\n"
-        "    nPriority    = %" PRI64d "\n"
+        "    nPriority    = %d\n"
         "    strComment   = \"%s\"\n"
         "    strStatusBar = \"%s\"\n"
         ")\n",
@@ -203,13 +203,13 @@ bool CAlert::ProcessAlert(bool fThread)
             const CAlert& alert = (*mi).second;
             if (Cancels(alert))
             {
-                LogPrint("alert", "cancelling alert %" PRI64d "\n", alert.nID);
+                LogPrint("alert", "cancelling alert %d\n", alert.nID);
                 uiInterface.NotifyAlertChanged((*mi).first, CT_DELETED);
                 mapAlerts.erase(mi++);
             }
             else if (!alert.IsInEffect())
             {
-                LogPrint("alert", "expiring alert %" PRI64d "\n", alert.nID);
+                LogPrint("alert", "expiring alert %d\n", alert.nID);
                 uiInterface.NotifyAlertChanged((*mi).first, CT_DELETED);
                 mapAlerts.erase(mi++);
             }
@@ -223,7 +223,7 @@ bool CAlert::ProcessAlert(bool fThread)
             const CAlert& alert = item.second;
             if (alert.Cancels(*this))
             {
-                LogPrint("alert", "alert already cancelled by %" PRI64d "\n", alert.nID);
+                LogPrint("alert", "alert already cancelled by %d\n", alert.nID);
                 return false;
             }
         }
@@ -253,6 +253,6 @@ bool CAlert::ProcessAlert(bool fThread)
         }
     }
 
-    LogPrint("alert", "accepted alert %" PRI64d ", AppliesToMe()=%" PRI64d "\n", nID, AppliesToMe());
+    LogPrint("alert", "accepted alert %d, AppliesToMe()=%d\n", nID, AppliesToMe());
     return true;
 }

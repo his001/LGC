@@ -2758,8 +2758,8 @@ for example: alertnotify=echo %%s | mail -s &quot;LGC Alert&quot; admin@foo.com
     </message>
     <message>
         <location line="+6"/>
-        <source>Listen for connections on &lt;port&gt; (default: 15714 or testnet: 25714)</source>
-        <translation>Ascultă pentru conectări pe &lt;port&gt; (implicit:  15714 sau testnet: 25714) </translation>
+        <source>Listen for connections on &lt;port&gt; (default: 33814 or testnet: 32714)</source>
+        <translation>Ascultă pentru conectări pe &lt;port&gt; (implicit:  33814 sau testnet: 32714) </translation>
     </message>
     <message>
         <location line="+1"/>

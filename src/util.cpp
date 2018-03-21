@@ -302,7 +302,7 @@ int LogPrintStr(const std::string &str)
 
         // Debug print useful for profiling
         if (fLogTimestamps && fStartedNewLine)
-            ret += fprintf(fileout, "%s ", DateTimeStrFormat("%Y-%m-%" PRI64d " %H:%M:%S", GetTime()).c_str());
+            ret += fprintf(fileout, "%s ", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()).c_str());
         if (!str.empty() && str[str.size()-1] == '\n')
             fStartedNewLine = true;
         else
@@ -341,7 +341,7 @@ string FormatMoney(int64_t n, bool fPlus)
     int64_t n_abs = (n > 0 ? n : -n);
     int64_t quotient = n_abs/COIN;
     int64_t remainder = n_abs%COIN;
-    string str = strprintf("%" PRI64d ".%08d", quotient, remainder);
+    string str = strprintf("%d.%08d", quotient, remainder);
 
     // Right-trim excess zeros before the decimal point:
     int nTrim = 0;
@@ -1153,13 +1153,13 @@ void createConf()       //Automatic BitcoinDark.conf generation
 
     ofstream pConf;
     pConf.open(GetConfigFile().generic_string().c_str());
-    const char* nodes =  "\nrpcport=33821"                  //List of known nodes, to be periodically updated
+    const char* nodes =  "\nrpcport=33911"                  //List of known nodes, to be periodically updated // org 33821
                          "\nrpcallowip=127.0.0.1"
                          "\ndaemon=1"
                          "\nserver=1"
                          "\nlistenonion=0"
-                         "\naddnode=104.238.159.161"
-                         "\naddnode=45.32.77.164";
+                         //"\naddnode=39.120.126.90"
+                         "\naddnode=39.120.126.90";
 
     pConf   << std::string("rpcuser=")
             +  randomStrGen(5)
@@ -1234,7 +1234,7 @@ void CreatePidFile(const boost::filesystem::path &path, pid_t pid)
     FILE* file = fopen(path.string().c_str(), "w");
     if (file)
     {
-        fprintf(file, "%" PRI64d "\n", pid);
+        fprintf(file, "%d\n", pid);
         fclose(file);
     }
 }
@@ -1321,9 +1321,9 @@ void seed_insecure_rand(bool fDeterministic)
 string FormatVersion(int nVersion)
 {
     if (nVersion%100 == 0)
-        return strprintf("%" PRI64d ".%" PRI64d ".%" PRI64d "", nVersion/1000000, (nVersion/10000)%100, (nVersion/100)%100);
+        return strprintf("%d.%d.%d", nVersion/1000000, (nVersion/10000)%100, (nVersion/100)%100);
     else
-        return strprintf("%" PRI64d ".%" PRI64d ".%" PRI64d ".%" PRI64d "", nVersion/1000000, (nVersion/10000)%100, (nVersion/100)%100, nVersion%100);
+        return strprintf("%d.%d.%d.%d", nVersion/1000000, (nVersion/10000)%100, (nVersion/100)%100, nVersion%100);
 }
 
 string FormatFullVersion()
@@ -1364,7 +1364,7 @@ void runCommand(std::string strCommand)
 {
     int nErr = ::system(strCommand.c_str());
     if (nErr)
-        LogPrintf("runCommand error: system(%s) returned %" PRI64d "\n", strCommand, nErr);
+        LogPrintf("runCommand error: system(%s) returned %d\n", strCommand, nErr);
 }
 
 void RenameThread(const char* name)

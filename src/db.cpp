@@ -39,7 +39,7 @@ void CDBEnv::EnvShutdown()
     fDbEnvInit = false;
     int ret = dbenv.close(0);
     if (ret != 0)
-        LogPrintf("EnvShutdown exception: %s (%" PRI64d ")\n", DbEnv::strerror(ret), ret);
+        LogPrintf("EnvShutdown exception: %s (%d)\n", DbEnv::strerror(ret), ret);
     if (!fMockDb)
         DbEnv(0).remove(strPath.c_str(), 0);
 }
@@ -107,7 +107,7 @@ bool CDBEnv::Open(boost::filesystem::path pathEnv_)
                      nEnvFlags,
                      S_IRUSR | S_IWUSR);
     if (ret != 0)
-        return error("CDB() : error %s (%" PRI64d ") opening database environment", DbEnv::strerror(ret), ret);
+        return error("CDB() : error %s (%d) opening database environment", DbEnv::strerror(ret), ret);
 
     fDbEnvInit = true;
     fMockDb = false;
@@ -143,7 +143,7 @@ void CDBEnv::MakeMock()
                      DB_PRIVATE,
                      S_IRUSR | S_IWUSR);
     if (ret > 0)
-        throw runtime_error(strprintf("CDBEnv::MakeMock(): error %" PRI64d " opening database environment", ret));
+        throw runtime_error(strprintf("CDBEnv::MakeMock(): error %d opening database environment", ret));
 
     fDbEnvInit = true;
     fMockDb = true;
@@ -190,7 +190,7 @@ bool CDBEnv::Salvage(std::string strFile, bool fAggressive,
     }
     if (result != 0 && result != DB_VERIFY_BAD)
     {
-        LogPrintf("ERROR: db salvage failed: %" PRI64d "\n",result);
+        LogPrintf("ERROR: db salvage failed: %d\n",result);
         return false;
     }
 
@@ -204,7 +204,11 @@ bool CDBEnv::Salvage(std::string strFile, bool fAggressive,
 
     string strLine;
     while (!strDump.eof() && strLine != "HEADER=END")
+    {
+        LogPrintf("Line LOG : db.cpp [208] strLine : %s\n",strLine);
         getline(strDump, strLine); // Skip past header
+    }
+    //LogPrintf("Line LOG : db.cpp [211] strDump : %s\n",strDump);
 
     std::string keyHex, valueHex;
     while (!strDump.eof() && keyHex != "DATA=END")
@@ -277,7 +281,7 @@ CDB::CDB(const std::string& strFilename, const char* pszMode) :
                 pdb = NULL;
                 --bitdb.mapFileUseCount[strFile];
                 strFile = "";
-                throw runtime_error(strprintf("CDB : Error %" PRI64d ", can't open database %s", ret, strFile));
+                throw runtime_error(strprintf("CDB : Error %d, can't open database %s", ret, strFile));
             }
 
             if (fCreate && !Exists(string("version")))
@@ -448,7 +452,7 @@ void CDBEnv::Flush(bool fShutdown)
         {
             string strFile = (*mi).first;
             int nRefCount = (*mi).second;
-            LogPrint("db", "%s refcount=%" PRI64d "\n", strFile, nRefCount);
+            LogPrint("db", "%s refcount=%d\n", strFile, nRefCount);
             if (nRefCount == 0)
             {
                 // Move log data to the dat file

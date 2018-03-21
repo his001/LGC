@@ -12,7 +12,7 @@
 void PrintLockContention(const char* pszName, const char* pszFile, int nLine)
 {
     LogPrintf("LOCKCONTENTION: %s\n", pszName);
-    LogPrintf("Locker: %s:%" PRI64d "\n", pszFile, nLine);
+    LogPrintf("Locker: %s:%d\n", pszFile, nLine);
 }
 #endif /* DEBUG_LOCKCONTENTION */
 

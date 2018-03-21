@@ -47,10 +47,12 @@ void init_blockindex(leveldb::Options& options, bool fRemoveOld = false) {
             filesystem::path strBlockFile = GetDataDir() / strprintf("blk%04u.dat", nFile);
 
             // Break if no such file
-            if( !filesystem::exists( strBlockFile ) )
+            if( !filesystem::exists( strBlockFile ) ){
+                LogPrintf("DB BlockFile 생성 :  %s\n", strBlockFile);
                 break;
-
+            }
             filesystem::remove(strBlockFile);
+            LogPrintf("DB BlockFile remove :  %s\n", strBlockFile);
 
             nFile++;
         }
@@ -61,6 +63,8 @@ void init_blockindex(leveldb::Options& options, bool fRemoveOld = false) {
     leveldb::Status status = leveldb::DB::Open(options, directory.string(), &txdb);
     if (!status.ok()) {
         throw runtime_error(strprintf("init_blockindex(): error opening database environment %s", status.ToString()));
+    }else{
+        //LogPrintf("DB open %s\n", directory.string());
     }
 }
 
@@ -89,11 +93,11 @@ CTxDB::CTxDB(const char* pszMode)
     if (Exists(string("version")))
     {
         ReadVersion(nVersion);
-        LogPrintf("Transaction index version is %" PRI64d "\n", nVersion);
+        LogPrintf("Transaction index version is %d\n", nVersion);
 
         if (nVersion < DATABASE_VERSION)
         {
-            LogPrintf("Required index version is %" PRI64d ", removing old database\n", DATABASE_VERSION);
+            LogPrintf("Required index version is %d, removing old database\n", DATABASE_VERSION);
 
             // Leveldb instance destruction
             delete txdb;
@@ -188,6 +192,7 @@ bool CTxDB::ScanBatch(const CDataStream &key, string *value, bool *deleted) cons
     *deleted = false;
     CBatchScanner scanner;
     scanner.needle = key.str();
+    LogPrintf("scanner.needle : %s\n", key.str());
     scanner.deleted = deleted;
     scanner.foundValue = value;
     leveldb::Status status = activeBatch->Iterate(&scanner);
@@ -240,6 +245,7 @@ bool CTxDB::AddTxIndex(const CTransaction& tx, const CDiskTxPos& pos, int nHeigh
     // Add to tx index
     uint256 hash = tx.GetHash();
     CTxIndex txindex(pos, tx.vout.size());
+    LogPrintf("CTxDB::ReadAddrIndex : %s\n", hash.ToString()); //PHS
     return Write(make_pair(string("tx"), hash), txindex);
 }
 
@@ -367,6 +373,7 @@ bool CTxDB::LoadBlockIndex()
         // Unpack keys and values.
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         ssKey.write(iterator->key().data(), iterator->key().size());
+        LogPrintf("LevelDB 내용저장: %s\n", iterator->key().data()); //PHS
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
         ssValue.write(iterator->value().data(), iterator->value().size());
         string strType;
@@ -405,7 +412,7 @@ bool CTxDB::LoadBlockIndex()
 
         if (!pindexNew->CheckIndex()) {
             delete iterator;
-            return error("LoadBlockIndex() : CheckIndex failed at %" PRI64d "", pindexNew->nHeight);
+            return error("LoadBlockIndex() : CheckIndex failed at %d", pindexNew->nHeight);
         }
 
         // NovaCoin: build setStakeSeen
@@ -446,7 +453,7 @@ bool CTxDB::LoadBlockIndex()
     nBestHeight = pindexBest->nHeight;
     nBestChainTrust = pindexBest->nChainTrust;
 
-    LogPrintf("LoadBlockIndex(): hashBestChain=%s  height=%" PRI64d "  trust=%s  date=%s\n",
+    LogPrintf("LoadBlockIndex(): hashBestChain= %s  height=%d  trust= %s  date= %s\n",
       hashBestChain.ToString(), nBestHeight, CBigNum(nBestChainTrust).ToString(),
       DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()));
 
@@ -482,7 +489,7 @@ bool CTxDB::LoadBlockIndex()
         // check level 7: verify block signature too
         if (nCheckLevel>0 && !block.CheckBlock(true, true, (nCheckLevel>6)))
         {
-            LogPrintf("LoadBlockIndex() : *** found bad block at %" PRI64d ", hash=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
+            LogPrintf("LoadBlockIndex() : *** found bad block at %d, hash=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
             pindexFork = pindex->pprev;
         }
         // check level 2: verify transaction index validity
@@ -524,7 +531,7 @@ bool CTxDB::LoadBlockIndex()
                                 pair<unsigned int, unsigned int> posFind = make_pair(txpos.nFile, txpos.nBlockPos);
                                 if (!mapBlockPos.count(posFind))
                                 {
-                                    LogPrintf("LoadBlockIndex(): *** found bad spend at %" PRI64d ", hashBlock=%s, hashTx=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString(), hashTx.ToString());
+                                    LogPrintf("LoadBlockIndex(): *** found bad spend at %d, hashBlock=%s, hashTx=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString(), hashTx.ToString());
                                     pindexFork = pindex->pprev;
                                 }
                                 // check level 6: check whether spent txouts were spent by a valid transaction that consume them
@@ -533,12 +540,12 @@ bool CTxDB::LoadBlockIndex()
                                     CTransaction txSpend;
                                     if (!txSpend.ReadFromDisk(txpos))
                                     {
-                                        LogPrintf("LoadBlockIndex(): *** cannot read spending transaction of %s:%i from disk\n", hashTx.ToString(), nOutput);
+                                        LogPrintf("LoadBlockIndex(): *** cannot read spending transaction of %s:%d from disk\n", hashTx.ToString(), nOutput);
                                         pindexFork = pindex->pprev;
                                     }
                                     else if (!txSpend.CheckTransaction())
                                     {
-                                        LogPrintf("LoadBlockIndex(): *** spending transaction of %s:%i is invalid\n", hashTx.ToString(), nOutput);
+                                        LogPrintf("LoadBlockIndex(): *** spending transaction of %s:%d is invalid\n", hashTx.ToString(), nOutput);
                                         pindexFork = pindex->pprev;
                                     }
                                     else
@@ -549,7 +556,7 @@ bool CTxDB::LoadBlockIndex()
                                                 fFound = true;
                                         if (!fFound)
                                         {
-                                            LogPrintf("LoadBlockIndex(): *** spending transaction of %s:%i does not spend it\n", hashTx.ToString(), nOutput);
+                                            LogPrintf("LoadBlockIndex(): *** spending transaction of %s:%d does not spend it\n", hashTx.ToString(), nOutput);
                                             pindexFork = pindex->pprev;
                                         }
                                     }
@@ -568,7 +575,7 @@ bool CTxDB::LoadBlockIndex()
                           if (ReadTxIndex(txin.prevout.hash, txindex))
                               if (txindex.vSpent.size()-1 < txin.prevout.n || txindex.vSpent[txin.prevout.n].IsNull())
                               {
-                                  LogPrintf("LoadBlockIndex(): *** found unspent prevout %s:%i in %s\n", txin.prevout.hash.ToString(), txin.prevout.n, hashTx.ToString());
+                                  LogPrintf("LoadBlockIndex(): *** found unspent prevout %s:%d in %s\n", txin.prevout.hash.ToString(), txin.prevout.n, hashTx.ToString());
                                   pindexFork = pindex->pprev;
                               }
                      }
@@ -580,7 +587,7 @@ bool CTxDB::LoadBlockIndex()
     {
         boost::this_thread::interruption_point();
         // Reorg back to the fork
-        LogPrintf("LoadBlockIndex() : *** moving best chain pointer back to block %" PRI64d "\n", pindexFork->nHeight);
+        LogPrintf("LoadBlockIndex() : *** moving best chain pointer back to block %d\n", pindexFork->nHeight);
         CBlock block;
         if (!block.ReadFromDisk(pindexFork))
             return error("LoadBlockIndex() : block.ReadFromDisk failed");

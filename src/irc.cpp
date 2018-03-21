@@ -151,7 +151,7 @@ bool Wait(int nSeconds)
 	return false;
 
     boost::this_thread::interruption_point();
-    LogPrintf("IRC waiting %" PRI64d " seconds to reconnect\n", nSeconds);
+    LogPrintf("IRC waiting %d seconds to reconnect\n", nSeconds);
     for (int i = 0; i < nSeconds; i++)
     {
 	boost::this_thread::interruption_point();
@@ -318,7 +318,7 @@ void ThreadIRCSeed2()
         if (!fNoListen && GetLocal(addrLocal, &addrIPv4) && nNameRetry<3)
             strMyName = EncodeAddress(GetLocalAddress(&addrConnect));
         if (strMyName == "")
-            strMyName = strprintf("x%" PRIszu "", GetRand(1000000000)); // PHS %u 를 %" PRIszu " 로
+            strMyName = strprintf("x%u", GetRand(1000000000)); // PHS %u 를 %u 로
 
         Send(hSocket, strprintf("NICK %s\r", strMyName.c_str()).c_str());
         Send(hSocket, strprintf("USER %s 8 * : %s\r", strMyName.c_str(), strMyName.c_str()).c_str());

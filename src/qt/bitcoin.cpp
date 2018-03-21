@@ -85,7 +85,7 @@ static void InitMessage(const std::string &message)
         splashref->showMessage(QString::fromStdString(message), Qt::AlignBottom|Qt::AlignHCenter, QColor(232,186,63));
         QApplication::instance()->processEvents();
     }
-    LogPrintf("init message: %s\n", message);
+    LogPrintf("bitcoin.cpp init message [88]: %s\n", message);
 }
 
 /*
@@ -93,6 +93,7 @@ static void InitMessage(const std::string &message)
  */
 static std::string Translate(const char* psz)
 {
+    LogPrintf("bitcoin.cpp Translate [96] : %s\n", QCoreApplication::translate("bitcoin-core", psz).toStdString());
     return QCoreApplication::translate("bitcoin-core", psz).toStdString();
 }
 

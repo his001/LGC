@@ -53,7 +53,7 @@ public:
         pchMessageStart[1] = 0xd3;
         pchMessageStart[2] = 0x17;
         pchMessageStart[3] = 0x01;
-        vAlertPubKey = ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f");
+        vAlertPubKey = ParseHex("0000000000fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f"); //04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f
         nDefaultPort = 33910; // org 33820
         nRPCPort = 33911; // org 33821
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 20);
@@ -66,9 +66,23 @@ public:
         //    CTxIn(COutPoint(0000000000, 4294967295), coinbase 00012a24323020466562203230313420426974636f696e2041544d7320636f6d6520746f20555341)
         //    CTxOut(empty)
         //  vMerkleTree: 12630d16a9
-        const char* pszTimestamp = "Laptop ban on Etihad flights from Abu Dhabi lifted";
+
+        // 2018-03-12
+        // Opening LevelDB in C:\Users\root\AppData\Roaming\LGC\txleveldb
+        // Transaction index version is 7050964d
+        // Opened LevelDB successfully
+        // LoadBlockIndex(): hashBestChain=000000fa793257f502f94a3531aebdaf91b070324a8f5041324b80f4b0f74c51  height=064d  trust=1048577  date=07/02/17 23:16:48
+        // LoadBlockIndex(): synchronized checkpoint 000000fa793257f502f94a3531aebdaf91b070324a8f5041324b80f4b0f74c51
+        // Verifying last 0 blocks at level 1
+        //  block index              16I64dms
+        // init message: 지갑을 불러오는 중...
+        // nFileVersion = 100010164d
+
+
+
+        const char* pszTimestamp = "Leading Global World Wide People For Human life 2018-03-16"; //
         CTransaction txNew;
-        txNew.nTime = 1499037408;
+        txNew.nTime = 1521126000; //2018-03-16 0시 //1503564476;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 0 << CBigNum(42) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
@@ -77,14 +91,16 @@ public:
         genesis.hashPrevBlock = 0;
         genesis.hashMerkleRoot = genesis.BuildMerkleTree();
         genesis.nVersion = 1;
-        genesis.nTime    = 1499037408;
+        genesis.nTime    = 1521126000;//2018-03-16 0시 //1503564476;
         genesis.nBits    = bnProofOfWorkLimit.GetCompact();
-        genesis.nNonce   = 7483051;
+        genesis.nNonce   = 763422;
 
         hashGenesisBlock = genesis.GetHash();
 
-        assert(hashGenesisBlock == uint256("0x000000fa793257f502f94a3531aebdaf91b070324a8f5041324b80f4b0f74c51"));
-        assert(genesis.hashMerkleRoot == uint256("0x4080031d1fd26d68fa953d7a5c1dac3b2618b56d8a3fa35dd4678bdeb0946671"));
+        //assert(hashGenesisBlock == uint256("0x000001faef25dec4fbcf906e6242621df2c183bf232f263d0ba5b101911e4563"));
+        assert(hashGenesisBlock == uint256("0x00bd68865b404a6b804147fe0ab568f01e437833c323a46d6f30e9bf33726ea7"));
+        assert(genesis.hashMerkleRoot == uint256("0x000000fa793257f502f94a3531aebdaf91b070324a8f5041324b80f4b0f74c51"));
+        //assert(genesis.hashMerkleRoot == uint256("0xda345afa1381ad59e4a67cde234eff84ed86d0b31419672fe6a76e754fd434f6"));
 
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,48);
@@ -137,7 +153,9 @@ public:
         
         hashGenesisBlock = genesis.GetHash();
 
-        assert(hashGenesisBlock == uint256("0x00005862693a9c2692d3abb4d071f261c1c64db9824d89ae28d533e435f6d87c"));
+        //assert(hashGenesisBlock == uint256("0x00005862693a9c2692d3abb4d071f261c1c64db9824d89ae28d533e435f6d87c"));
+        //assert(hashGenesisBlock == uint256("0x000001faef25dec4fbcf906e6242621df2c183bf232f263d0ba5b101911e4563"));
+          assert(hashGenesisBlock == uint256("0x00bd68865b404a6b804147fe0ab568f01e437833c323a46d6f30e9bf33726ea7"));
 
         vFixedSeeds.clear();
         vSeeds.clear();

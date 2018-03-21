@@ -45,7 +45,7 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("COutPoint(%s, %" PRIszu ")", hash.ToString().substr(0,10), n);  // PHS %u 를 %" PRIszu " 로
+        return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0,10), n);  // PHS %u 를 %u 로
     }
 };
 
@@ -127,7 +127,7 @@ public:
         else
             str += strprintf(", scriptSig=%s", scriptSig.ToString().substr(0,24));
         if (nSequence != std::numeric_limits<unsigned int>::max())
-            str += strprintf(", nSequence=%" PRIszu "", nSequence); // PHS %u 를 %" PRIszu " 로
+            str += strprintf(", nSequence=%u", nSequence); // PHS %u 를 %u 로
         str += ")";
         return str;
     }

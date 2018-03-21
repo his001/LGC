@@ -55,12 +55,30 @@ string HTTPPost(const string& strMsg, const map<string,string>& mapRequestHeader
 
 static string rfc1123Time()
 {
-    return DateTimeStrFormat("%a, %" PRI64d " %b %Y %H:%M:%S +0000", GetTime());
+    return DateTimeStrFormat("%a, %d %b %Y %H:%M:%S +0000", GetTime());
 }
 
 string HTTPReply(int nStatus, const string& strMsg, bool keepalive)
 {
     if (nStatus == HTTP_UNAUTHORIZED)
+    {
+        LogPrintf("HTTP/1.0 401 Authorization Required\r\n"
+                            "Date: %s\r\n"
+                            "Server: LGC-json-rpc/%s\r\n"
+                            "WWW-Authenticate: Basic realm=\"jsonrpc\"\r\n"
+                            "Content-Type: text/html\r\n"
+                            "Content-Length: 296\r\n"
+                            "\r\n"
+                            "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\r\n"
+                            "\"http://www.w3.org/TR/1999/REC-html401-19991224/loose.dtd\">\r\n"
+                            "<HTML>\r\n"
+                            "<HEAD>\r\n"
+                            "<TITLE>Error</TITLE>\r\n"
+                            "<META HTTP-EQUIV='Content-Type' CONTENT='text/html; charset=ISO-8859-1'>\r\n"
+                            "</HEAD>\r\n"
+                            "<BODY><H1>401 Unauthorized.</H1></BODY>\r\n"
+                            "</HTML>\r\n", rfc1123Time(), FormatFullVersion()); //PHS
+
         return strprintf("HTTP/1.0 401 Authorization Required\r\n"
             "Date: %s\r\n"
             "Server: LGC-json-rpc/%s\r\n"
@@ -77,6 +95,7 @@ string HTTPReply(int nStatus, const string& strMsg, bool keepalive)
             "</HEAD>\r\n"
             "<BODY><H1>401 Unauthorized.</H1></BODY>\r\n"
             "</HTML>\r\n", rfc1123Time(), FormatFullVersion());
+    }
     const char *cStatus;
 
     if (nStatus == HTTP_OK) cStatus = "OK";
@@ -85,11 +104,29 @@ string HTTPReply(int nStatus, const string& strMsg, bool keepalive)
     else if (nStatus == HTTP_NOT_FOUND) cStatus = "Not Found";
     else if (nStatus == HTTP_INTERNAL_SERVER_ERROR) cStatus = "Internal Server Error";
     else cStatus = "";
+    {
+      LogPrintf(
+                  "HTTP/1.1 %d %s\r\n"
+                  "Date: %s\r\n"
+                  "Connection: %s\r\n"
+                  "Content-Length: %u\r\n" // PHS %u 를 %u 로
+                  "Content-Type: application/json\r\n"
+                  "Server: LGC-json-rpc/%s\r\n"
+                  "\r\n"
+                  "%s",
+              nStatus,
+              cStatus,
+              rfc1123Time(),
+              keepalive ? "keep-alive" : "close",
+              strMsg.size(),
+              FormatFullVersion(),
+              strMsg); //PHS
+
     return strprintf(
-            "HTTP/1.1 %" PRI64d " %s\r\n"
+            "HTTP/1.1 %d %s\r\n"
             "Date: %s\r\n"
             "Connection: %s\r\n"
-            "Content-Length: %" PRIszu "\r\n" // PHS %u 를 %" PRIszu " 로
+            "Content-Length: %u\r\n" // PHS %u 를 %u 로
             "Content-Type: application/json\r\n"
             "Server: LGC-json-rpc/%s\r\n"
             "\r\n"
@@ -101,8 +138,8 @@ string HTTPReply(int nStatus, const string& strMsg, bool keepalive)
         strMsg.size(),
         FormatFullVersion(),
         strMsg);
-
-    LogPrintf("rpcprotocol.cpp [103] HTTPReply - : %s \n", cStatus );    // PHS
+    }
+    LogPrintf("rpcprotocol.cpp [142] HTTPReply - : %s \n", cStatus );    // PHS
 }
 
 bool ReadHTTPRequestLine(std::basic_istream<char>& stream, int &proto,
@@ -137,7 +174,7 @@ bool ReadHTTPRequestLine(std::basic_istream<char>& stream, int &proto,
     if (ver != NULL)
         proto = atoi(ver+7);
 
-    LogPrintf("rpcprotocol.cpp [138] ReadHTTPRequestLine - : %s \n", strProto );    // PHS
+    LogPrintf("rpcprotocol.cpp [177] ReadHTTPRequestLine - : %s \n", strProto );    // PHS
 
     return true;
 }
@@ -155,7 +192,7 @@ int ReadHTTPStatus(std::basic_istream<char>& stream, int &proto)
     if (ver != NULL)
         proto = atoi(ver+7);
 
-    LogPrintf("rpcprotocol.cpp [156] ReadHTTPStatus - : %s \n", str.c_str() );    // PHS
+    LogPrintf("rpcprotocol.cpp [195] ReadHTTPStatus - : %s \n", str.c_str() );    // PHS
     return atoi(vWords[1].c_str());
 }
 
@@ -183,7 +220,7 @@ int ReadHTTPHeaders(std::basic_istream<char>& stream, map<string, string>& mapHe
                 nLen = atoi(strValue.c_str());
             }
         }
-        LogPrintf("rpcprotocol.cpp [183] ReadHTTPHeaders \n");    // PHS
+        LogPrintf("rpcprotocol.cpp [223] ReadHTTPHeaders \n");    // PHS
     }
 
     return nLen;
@@ -240,7 +277,7 @@ string JSONRPCRequest(const string& strMethod, const Array& params, const Value&
     request.push_back(Pair("params", params));
     request.push_back(Pair("id", id));
 
-    LogPrintf("rpcprotocol.cpp [183] JSONRPCRequest - : %s \n", write_string(Value(request), false) );    // PHS
+    LogPrintf("rpcprotocol.cpp [280] JSONRPCRequest - : %s \n", write_string(Value(request), false) );    // PHS
     return write_string(Value(request), false) + "\n";
 }
 
@@ -249,16 +286,16 @@ Object JSONRPCReplyObj(const Value& result, const Value& error, const Value& id)
     Object reply;
     if (error.type() != null_type){
         reply.push_back(Pair("result", Value::null));
-        LogPrintf("rpcprotocol.cpp [250] JSONRPCReplyObj - Value::null \n");    // PHS
+        LogPrintf("rpcprotocol.cpp [289] JSONRPCReplyObj - Value::null \n");    // PHS
     }
     else {
         reply.push_back(Pair("result", result));
-        LogPrintf("rpcprotocol.cpp [250] JSONRPCReplyObj - result \n");    // PHS
+        LogPrintf("rpcprotocol.cpp [293] JSONRPCReplyObj - result \n");    // PHS
     }
     reply.push_back(Pair("error", error));
     reply.push_back(Pair("id", id));
 
-    LogPrintf("rpcprotocol.cpp [259] JSONRPCReplyObj \n");    // PHS
+    LogPrintf("rpcprotocol.cpp [298] JSONRPCReplyObj \n");    // PHS
     return reply;
 }
 
@@ -274,6 +311,6 @@ Object JSONRPCError(int code, const string& message)
     error.push_back(Pair("code", code));
     error.push_back(Pair("message", message));
     //QString strLog="Log"; strLog.append(message);
-    //LogPrintf("rpcprotocol.cpp [255] JSONRPCError - : %s \n", strLog );    // PHS
+    //LogPrintf("rpcprotocol.cpp [314] JSONRPCError - : %s \n", strLog );    // PHS
     return error;
 }

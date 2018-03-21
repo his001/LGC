@@ -80,7 +80,7 @@ void CActiveMasternode::ManageStatus()
         if(GetMasterNodeVin(vin, pubKeyCollateralAddress, keyCollateralAddress)) {
 
             if(GetInputAge(vin) < MASTERNODE_MIN_CONFIRMATIONS){
-                LogPrintf("CActiveMasternode::ManageStatus() - Input must have least %" PRI64d " confirmations - %" PRI64d " confirmations\n", MASTERNODE_MIN_CONFIRMATIONS, GetInputAge(vin));
+                LogPrintf("CActiveMasternode::ManageStatus() - Input must have least %d confirmations - %d confirmations\n", MASTERNODE_MIN_CONFIRMATIONS, GetInputAge(vin));
                 status = MASTERNODE_INPUT_TOO_NEW;
                 return;
             }

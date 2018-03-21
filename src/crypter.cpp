@@ -153,7 +153,7 @@ bool EncryptAES256(const SecureString& sKey, const SecureString& sPlaintext, con
 
     // Verify key sizes
     if(sKey.size() != 32 || sIV.size() != AES_BLOCK_SIZE) {
-        LogPrintf("crypter EncryptAES256 - Invalid key or block size: Key: %" PRI64d " sIV:%" PRI64d "\n", sKey.size(), sIV.size());
+        LogPrintf("crypter EncryptAES256 - Invalid key or block size: Key: %d sIV:%d\n", sKey.size(), sIV.size());
         return false;
     }
 

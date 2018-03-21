@@ -731,7 +731,7 @@ Value addmultisigaddress(const Array& params, bool fHelp)
     if ((int)keys.size() < nRequired)
         throw runtime_error(
             strprintf("not enough keys supplied "
-                      "(got %" PRIszu " keys, but need at least %" PRI64d " to redeem)", keys.size(), nRequired)); // PHS %u 를 %" PRIszu " 로
+                      "(got %u keys, but need at least %d to redeem)", keys.size(), nRequired)); // PHS %u 를 %u 로
     std::vector<CPubKey> pubkeys;
     pubkeys.resize(keys.size());
     for (unsigned int i = 0; i < keys.size(); i++)
@@ -1923,12 +1923,12 @@ Value scanforstealthtxns(const Array& params, bool fHelp)
         pindex = pindex->pnext;
     };
     
-    printf("Scanned %" PRIszu " blocks, %" PRIszu " transactions\n", nBlocks, nTransactions); // PHS %u 를 %" PRIszu " 로
-    printf("Found %" PRIszu " stealth transactions in blockchain.\n", pwalletMain->nStealth); // PHS %u 를 %" PRIszu " 로
-    printf("Found %" PRIszu " new owned stealth transactions.\n", pwalletMain->nFoundStealth); // PHS %u 를 %" PRIszu " 로
+    printf("Scanned %u blocks, %u transactions\n", nBlocks, nTransactions); // PHS %u 를 %u 로
+    printf("Found %u stealth transactions in blockchain.\n", pwalletMain->nStealth); // PHS %u 를 %u 로
+    printf("Found %u new owned stealth transactions.\n", pwalletMain->nFoundStealth); // PHS %u 를 %u 로
     
     char cbuf[256];
-    snprintf(cbuf, sizeof(cbuf), "%" PRIszu " new stealth transactions.", pwalletMain->nFoundStealth); // PHS %u 를 %" PRIszu " 로
+    snprintf(cbuf, sizeof(cbuf), "%u new stealth transactions.", pwalletMain->nFoundStealth); // PHS %u 를 %u 로
     
     result.push_back(Pair("result", "Scan complete."));
     result.push_back(Pair("found", std::string(cbuf)));

@@ -273,12 +273,12 @@ std::string FormatParagraph(const std::string in, size_t width=79, size_t indent
 
 inline std::string i64tostr(int64_t n)
 {
-    return strprintf("%" PRI64d "", n);
+    return strprintf("%d", n);
 }
 
 inline std::string itostr(int n)
 {
-    return strprintf("%" PRI64d "", n);
+    return strprintf("%d", n);
 }
 
 inline int64_t atoi64(const char* psz)
@@ -381,7 +381,7 @@ inline int64_t GetTimeMicros()
 
 std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime);
 
-static const std::string strTimestampFormat = "%Y-%m-%" PRI64d " %H:%M:%S UTC";
+static const std::string strTimestampFormat = "%Y-%m-%d %H:%M:%S UTC";
 inline std::string DateTimeStrFormat(int64_t nTime)
 {
     return DateTimeStrFormat(strTimestampFormat.c_str(), nTime);

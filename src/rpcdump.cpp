@@ -24,11 +24,11 @@ namespace bt = boost::posix_time;
 // Extended DecodeDumpTime implementation, see this page for details:
 // http://stackoverflow.com/questions/3786201/parsing-of-date-time-from-string-boost
 const std::locale formats[] = {
-    std::locale(std::locale::classic(),new bt::time_input_facet("%Y-%m-%" PRI64d "T%H:%M:%SZ")),
-    std::locale(std::locale::classic(),new bt::time_input_facet("%Y-%m-%" PRI64d " %H:%M:%S")),
-    std::locale(std::locale::classic(),new bt::time_input_facet("%Y/%m/%" PRI64d " %H:%M:%S")),
-    std::locale(std::locale::classic(),new bt::time_input_facet("%" PRI64d ".%m.%Y %H:%M:%S")),
-    std::locale(std::locale::classic(),new bt::time_input_facet("%Y-%m-%" PRI64d ""))
+    std::locale(std::locale::classic(),new bt::time_input_facet("%Y-%m-%dT%H:%M:%SZ")),
+    std::locale(std::locale::classic(),new bt::time_input_facet("%Y-%m-%d %H:%M:%S")),
+    std::locale(std::locale::classic(),new bt::time_input_facet("%Y/%m/%d %H:%M:%S")),
+    std::locale(std::locale::classic(),new bt::time_input_facet("%d.%m.%Y %H:%M:%S")),
+    std::locale(std::locale::classic(),new bt::time_input_facet("%Y-%m-%d"))
 };
 
 const size_t formats_n = sizeof(formats)/sizeof(formats[0]);
@@ -56,7 +56,7 @@ int64_t DecodeDumpTime(const std::string& s)
 }
 
 std::string static EncodeDumpTime(int64_t nTime) {
-    return DateTimeStrFormat("%Y-%m-%" PRI64d "T%H:%M:%SZ", nTime);
+    return DateTimeStrFormat("%Y-%m-%dT%H:%M:%SZ", nTime);
 }
 
 std::string static EncodeDumpString(const std::string &str) {

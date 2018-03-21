@@ -68,7 +68,7 @@ void ProcessMessageDarksend(CNode* pfrom, std::string& strCommand, CDataStream& 
         vRecv >> sessionID >> txNew;
 
         if(darkSendPool.sessionID != sessionID){
-            if (fDebug) LogPrintf("dsf - message doesn't match current darksend session %" PRI64d " %" PRI64d "\n", darkSendPool.sessionID, sessionID);
+            if (fDebug) LogPrintf("dsf - message doesn't match current darksend session %d %d\n", darkSendPool.sessionID, sessionID);
             return;
         }
 
@@ -92,7 +92,7 @@ void ProcessMessageDarksend(CNode* pfrom, std::string& strCommand, CDataStream& 
         vRecv >> sessionID >> error >> lastMessage;
 
         if(darkSendPool.sessionID != sessionID){
-            if (fDebug) LogPrintf("dsc - message doesn't match current darksend session %" PRI64d " %" PRI64d "\n", darkSendPool.sessionID, sessionID);
+            if (fDebug) LogPrintf("dsc - message doesn't match current darksend session %d %d\n", darkSendPool.sessionID, sessionID);
             return;
         }
 
@@ -182,7 +182,7 @@ void ProcessMessageDarksend(CNode* pfrom, std::string& strCommand, CDataStream& 
                 if(q.vin == dsq.vin) return;
             }
 
-            if(fDebug) LogPrintf("dsq last %" PRI64d " last2 %" PRI64d " count %" PRI64d "\n", vecMasternodes[mn].nLastDsq, vecMasternodes[mn].nLastDsq + (int)vecMasternodes.size()/5, darkSendPool.nDsqCount);
+            if(fDebug) LogPrintf("dsq last %d last2 %d count %d\n", vecMasternodes[mn].nLastDsq, vecMasternodes[mn].nLastDsq + (int)vecMasternodes.size()/5, darkSendPool.nDsqCount);
             //don't allow a few nodes to dominate the queuing process
             if(vecMasternodes[mn].nLastDsq != 0 &&
                 vecMasternodes[mn].nLastDsq + CountMasternodesAboveProtocol(darkSendPool.MIN_PEER_PROTO_VERSION)/5 > darkSendPool.nDsqCount){
@@ -358,7 +358,7 @@ void ProcessMessageDarksend(CNode* pfrom, std::string& strCommand, CDataStream& 
         if(fDebug) LogPrintf("dssu - state: %i entriesCount: %i accepted: %i error: %s \n", state, entriesCount, accepted, error.c_str());
 
         if((accepted != 1 && accepted != 0) && darkSendPool.sessionID != sessionID){
-            LogPrintf("dssu - message doesn't match current darksend session %" PRI64d " %" PRI64d "\n", darkSendPool.sessionID, sessionID);
+            LogPrintf("dssu - message doesn't match current darksend session %d %d\n", darkSendPool.sessionID, sessionID);
             return;
         }
 
@@ -377,12 +377,12 @@ void ProcessMessageDarksend(CNode* pfrom, std::string& strCommand, CDataStream& 
         bool success = false;
         int count = 0;
 
-        LogPrintf(" -- sigs count %" PRI64d " %" PRI64d "\n", (int)sigs.size(), count);
+        LogPrintf(" -- sigs count %d %d\n", (int)sigs.size(), count);
 
         BOOST_FOREACH(const CTxIn item, sigs)
         {
             if(darkSendPool.AddScriptSig(item)) success = true;
-            if(fDebug) LogPrintf(" -- sigs count %" PRI64d " %" PRI64d "\n", (int)sigs.size(), count);
+            if(fDebug) LogPrintf(" -- sigs count %d %d\n", (int)sigs.size(), count);
             count++;
         }
 
@@ -428,7 +428,7 @@ int GetInputDarksendRounds(CTxIn in, int rounds)
         {
             if(pwalletMain->IsMine(in2))
             {
-                //LogPrintf("rounds :: %s %s %" PRI64d " NEXT\n", padding.c_str(), in.ToString().c_str(), rounds);
+                //LogPrintf("rounds :: %s %s %d NEXT\n", padding.c_str(), in.ToString().c_str(), rounds);
                 int n = GetInputDarksendRounds(in2, rounds+1);
                 if(n != -3) return n;
             }
@@ -773,7 +773,7 @@ void CDarkSendPool::ChargeRandomFees(){
             */
             if(r <= 20)
             {
-                LogPrintf("CDarkSendPool::ChargeRandomFees -- charging random fees. %" PRIszu "\n", i); // PHS %u 를 %" PRIszu " 로
+                LogPrintf("CDarkSendPool::ChargeRandomFees -- charging random fees. %u\n", i); // PHS %u 를 %u 로
 
                 CWalletTx wtxCollateral = CWalletTx(pwalletMain, txCollateral);
 
@@ -808,7 +808,7 @@ void CDarkSendPool::CheckTimeout(){
     vector<CDarksendQueue>::iterator it;
     for(it=vecDarksendQueue.begin();it<vecDarksendQueue.end();it++){
         if((*it).IsExpired()){
-            if(fDebug) LogPrintf("CDarkSendPool::CheckTimeout() : Removing expired queue entry - %" PRI64d "\n", c);
+            if(fDebug) LogPrintf("CDarkSendPool::CheckTimeout() : Removing expired queue entry - %d\n", c);
             vecDarksendQueue.erase(it);
             break;
         }
@@ -842,7 +842,7 @@ void CDarkSendPool::CheckTimeout(){
         vector<CDarkSendEntry>::iterator it2;
         for(it2=vec->begin();it2<vec->end();it2++){
             if((*it2).IsExpired()){
-                if(fDebug) LogPrintf("CDarkSendPool::CheckTimeout() : Removing expired entry - %" PRIszu "\n", c);
+                if(fDebug) LogPrintf("CDarkSendPool::CheckTimeout() : Removing expired entry - %u\n", c);
                 vec->erase(it2);
                 if(entries.size() == 0 && myEntries.size() == 0){
                     SetNull(true);
@@ -919,7 +919,7 @@ bool CDarkSendPool::SignatureValid(const CScript& newSig, const CTxIn& newVin){
         txNew.vin[n].scriptSig = newSig;
         if(fDebug) LogPrintf("CDarkSendPool::SignatureValid() - Sign with sig %s\n", newSig.ToString().substr(0,24).c_str());
         if (!VerifyScript(txNew.vin[n].scriptSig, sigPubKey, SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC, SignatureChecker(txNew, i))){
-            if(fDebug) LogPrintf("CDarkSendPool::SignatureValid() - Signing - Error signing input %" PRIszu "\n", n); // PHS %u 를 %" PRIszu " 로
+            if(fDebug) LogPrintf("CDarkSendPool::SignatureValid() - Signing - Error signing input %u\n", n); // PHS %u 를 %u 로
             return false;
         }
     }
@@ -966,7 +966,7 @@ bool CDarkSendPool::IsCollateralValid(const CTransaction& txCollateral){
 
     //collateral transactions are required to pay out DARKSEND_COLLATERAL as a fee to the miners
     if(nValueIn-nValueOut < DARKSEND_COLLATERAL) {
-        if(fDebug) LogPrintf ("CDarkSendPool::IsCollateralValid - did not include enough fees in transaction %" PRI64d "\n%s\n", nValueOut-nValueIn, txCollateral.ToString().c_str());
+        if(fDebug) LogPrintf ("CDarkSendPool::IsCollateralValid - did not include enough fees in transaction %d\n%s\n", nValueOut-nValueIn, txCollateral.ToString().c_str());
         return false;
     }
 
@@ -1196,7 +1196,7 @@ bool CDarkSendPool::StatusUpdate(int newState, int newEntriesCount, int newAccep
 
         if(newAccepted == 1) {
             sessionID = newSessionID;
-            LogPrintf("CDarkSendPool::StatusUpdate - set sessionID to %" PRI64d "\n", sessionID);
+            LogPrintf("CDarkSendPool::StatusUpdate - set sessionID to %d\n", sessionID);
             sessionFoundMasternode = true;
         }
     }
@@ -1274,7 +1274,7 @@ bool CDarkSendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNod
                 if(foundOutputs < targetOuputs || nValue1 != nValue2) {
                     // in this case, something went wrong and we'll refuse to sign. It's possible we'll be charged collateral. But that's
                     // better then signing if the transaction doesn't look like what we wanted.
-                    LogPrintf("CDarkSendPool::Sign - My entries are not correct! Refusing to sign. %" PRI64d " entries %" PRI64d " target. \n", foundOutputs, targetOuputs);
+                    LogPrintf("CDarkSendPool::Sign - My entries are not correct! Refusing to sign. %d entries %d target. \n", foundOutputs, targetOuputs);
                     return false;
                 }
 				
@@ -1285,7 +1285,7 @@ bool CDarkSendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNod
                 }
 
                 sigs.push_back(finalTransaction.vin[mine]);
-                if(fDebug) LogPrintf(" -- dss %" PRI64d " %" PRI64d " %s\n", mine, (int)sigs.size(), finalTransaction.vin[mine].scriptSig.ToString().c_str());
+                if(fDebug) LogPrintf(" -- dss %d %d %s\n", mine, (int)sigs.size(), finalTransaction.vin[mine].scriptSig.ToString().c_str());
             }
 
         }
@@ -1425,7 +1425,7 @@ bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
 //        }
     }
 
-    if (fDebug) LogPrintf("DoAutomaticDenominating : nLowestDenom=%" PRI64d ", nBalanceNeedsAnonymized=%" PRI64d "\n", nLowestDenom, nBalanceNeedsAnonymized);
+    if (fDebug) LogPrintf("DoAutomaticDenominating : nLowestDenom=%d, nBalanceNeedsAnonymized=%d\n", nLowestDenom, nBalanceNeedsAnonymized);
 
     // select coins that should be given to the pool
     if (!pwalletMain->SelectCoinsDark(nValueMin, nBalanceNeedsAnonymized, vCoins, nValueIn, 0, nDarksendRounds))
@@ -1463,7 +1463,7 @@ bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
         if(sessionTotalValue > nBalanceNeedsAnonymized) sessionTotalValue = nBalanceNeedsAnonymized;
 
         double fLGCSubmitted = (sessionTotalValue / CENT);
-        LogPrintf("Submitting Darksend for %f LGC CENT - sessionTotalValue %" PRI64d "\n", fLGCSubmitted, sessionTotalValue);
+        LogPrintf("Submitting Darksend for %f LGC CENT - sessionTotalValue %d\n", fLGCSubmitted, sessionTotalValue);
 
         if(pwalletMain->GetDenominatedBalance(true, true) > 0){ //get denominated unconfirmed inputs
             LogPrintf("DoAutomaticDenominating -- Found unconfirmed denominated outputs, will wait till they confirm to continue.\n");
@@ -1498,7 +1498,7 @@ bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
 
                 // Try to match their denominations if possible
                 if (!pwalletMain->SelectCoinsByDenominations(dsq.nDenom, nValueMin, nBalanceNeedsAnonymized, vCoins, vCoins2, nValueIn, 0, nDarksendRounds)){
-                    LogPrintf("DoAutomaticDenominating - Couldn't match denominations %" PRI64d "\n", dsq.nDenom);
+                    LogPrintf("DoAutomaticDenominating - Couldn't match denominations %d\n", dsq.nDenom);
                     continue;
                 }
 
@@ -1523,7 +1523,7 @@ bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
                         sessionDenom = dsq.nDenom;
 
                         pnode->PushMessage("dsa", sessionDenom, txCollateral);
-                        LogPrintf("DoAutomaticDenominating --- connected (from queue), sending dsa for %" PRI64d " %" PRI64d " - %s\n", sessionDenom, GetDenominationsByAmount(sessionTotalValue), pnode->addr.ToString().c_str());
+                        LogPrintf("DoAutomaticDenominating --- connected (from queue), sending dsa for %d %d - %s\n", sessionDenom, GetDenominationsByAmount(sessionTotalValue), pnode->addr.ToString().c_str());
                         strAutoDenomResult = "";
                         return true;
                     }
@@ -1563,7 +1563,7 @@ bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
             }
 
             lastTimeChanged = GetTimeMillis();
-            LogPrintf("DoAutomaticDenominating -- attempt %" PRI64d " connection to masternode %s\n", i, vecMasternodes[i].addr.ToString().c_str());
+            LogPrintf("DoAutomaticDenominating -- attempt %d connection to masternode %s\n", i, vecMasternodes[i].addr.ToString().c_str());
             if(ConnectNode((CAddress)vecMasternodes[i].addr, NULL, true)){
                 submittedToMasternode = vecMasternodes[i].addr;
 
@@ -1587,7 +1587,7 @@ bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
                     sessionDenom = GetDenominationsByAmounts(vecAmounts);
 
                     pnode->PushMessage("dsa", sessionDenom, txCollateral);
-                    LogPrintf("DoAutomaticDenominating --- connected, sending dsa for %" PRI64d " - denom %" PRI64d "\n", sessionDenom, GetDenominationsByAmount(sessionTotalValue));
+                    LogPrintf("DoAutomaticDenominating --- connected, sending dsa for %d - denom %d\n", sessionDenom, GetDenominationsByAmount(sessionTotalValue));
                     strAutoDenomResult = "";
                     return true;
                 }
@@ -1748,12 +1748,12 @@ bool CDarkSendPool::CreateDenominated(int64_t nTotalValue)
             //increment outputs and subtract denomination amount
             nOutputs++;
             nValueLeft -= v;
-            LogPrintf("CreateDenominated1 %" PRI64d "\n", nValueLeft);
+            LogPrintf("CreateDenominated1 %d\n", nValueLeft);
         }
 
         if(nValueLeft == 0) break;
     }
-    LogPrintf("CreateDenominated2 %" PRI64d "\n", nValueLeft);
+    LogPrintf("CreateDenominated2 %d\n", nValueLeft);
 
     // if we have anything left over, it will be automatically send back as change - there is no need to send it manually
 
@@ -1778,7 +1778,7 @@ bool CDarkSendPool::CreateDenominated(int64_t nTotalValue)
 bool CDarkSendPool::IsCompatibleWithEntries(std::vector<CTxOut> vout)
 {
     BOOST_FOREACH(const CDarkSendEntry v, entries) {
-        LogPrintf(" IsCompatibleWithEntries %" PRI64d " %" PRI64d "\n", GetDenominations(vout), GetDenominations(v.vout));
+        LogPrintf(" IsCompatibleWithEntries %d %d\n", GetDenominations(vout), GetDenominations(v.vout));
 /*
         BOOST_FOREACH(CTxOut o1, vout)
             LogPrintf(" vout 1 - %s\n", o1.ToString().c_str());
@@ -1793,7 +1793,7 @@ bool CDarkSendPool::IsCompatibleWithEntries(std::vector<CTxOut> vout)
 
 bool CDarkSendPool::IsCompatibleWithSession(int64_t nDenom, CTransaction txCollateral, std::string& strReason)
 {
-    LogPrintf("CDarkSendPool::IsCompatibleWithSession - sessionDenom %" PRI64d " sessionUsers %" PRI64d "\n", sessionDenom, sessionUsers);
+    LogPrintf("CDarkSendPool::IsCompatibleWithSession - sessionDenom %d sessionUsers %d\n", sessionDenom, sessionUsers);
 
     if (!unitTest && !IsCollateralValid(txCollateral)){
         if(fDebug) LogPrintf ("CDarkSendPool::IsCompatibleWithSession - collateral not valid!\n");
@@ -1827,7 +1827,7 @@ bool CDarkSendPool::IsCompatibleWithSession(int64_t nDenom, CTransaction txColla
     if((state != POOL_STATUS_ACCEPTING_ENTRIES && state != POOL_STATUS_QUEUE) || sessionUsers >= GetMaxPoolTransactions()){
         if((state != POOL_STATUS_ACCEPTING_ENTRIES && state != POOL_STATUS_QUEUE)) strReason = _("Incompatible mode.");
         if(sessionUsers >= GetMaxPoolTransactions()) strReason = _("Masternode queue is full.");
-        LogPrintf("CDarkSendPool::IsCompatibleWithSession - incompatible mode, return false %" PRI64d " %" PRI64d "\n", state != POOL_STATUS_ACCEPTING_ENTRIES, sessionUsers >= GetMaxPoolTransactions());
+        LogPrintf("CDarkSendPool::IsCompatibleWithSession - incompatible mode, return false %d %d\n", state != POOL_STATUS_ACCEPTING_ENTRIES, sessionUsers >= GetMaxPoolTransactions());
         return false;
     }
 
@@ -1962,7 +1962,7 @@ int CDarkSendPool::GetDenominationsByAmount(int64_t nAmount, int nDenomTarget){
             nValueLeft -= v;
             nOutputs++;
         }
-        LogPrintf("GetDenominationsByAmount --- %" PRI64d " nOutputs %" PRI64d "\n", v, nOutputs);
+        LogPrintf("GetDenominationsByAmount --- %d nOutputs %d\n", v, nOutputs);
     }
 
     //add non-denom left overs as change

@@ -580,7 +580,7 @@ void StartRPCThreads()
     }
     catch(boost::system::system_error &e)
     {
-        strerr = strprintf(_("An error occurred while setting up the RPC port %" PRIszu " for listening on IPv6, falling back to IPv4: %s"), endpoint.port(), e.what()); // PHS %u 를 %" PRIszu " 로
+        strerr = strprintf(_("An error occurred while setting up the RPC port %u for listening on IPv6, falling back to IPv4: %s"), endpoint.port(), e.what()); // PHS %u 를 %u 로
     }
 
     try {
@@ -603,7 +603,7 @@ void StartRPCThreads()
     }
     catch(boost::system::system_error &e)
     {
-        strerr = strprintf(_("An error occurred while setting up the RPC port %" PRIszu " for listening on IPv4: %s"), endpoint.port(), e.what()); // PHS %u 를 %" PRIszu " 로
+        strerr = strprintf(_("An error occurred while setting up the RPC port %u for listening on IPv4: %s"), endpoint.port(), e.what()); // PHS %u 를 %u 로
     }
 
     if (!fListening) {

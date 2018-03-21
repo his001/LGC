@@ -249,7 +249,7 @@ public:
         if (IsNull())
             return "null";
         else
-            return strprintf("(nFile=%" PRIszu ", nBlockPos=%" PRIszu ", nTxPos=%" PRIszu ")", nFile, nBlockPos, nTxPos);
+            return strprintf("(nFile=%u, nBlockPos=%u, nTxPos=%u)", nFile, nBlockPos, nTxPos);
     }
 };
 
@@ -403,7 +403,7 @@ public:
     {
         std::string str;
         str += IsCoinBase()? "Coinbase" : (IsCoinStake()? "Coinstake" : "CTransaction");
-        str += strprintf("(hash=%s, nTime=%" PRI64d ", ver=%" PRI64d ", vin.size=%" PRIszu ", vout.size=%" PRIszu ", nLockTime=%" PRI64d ")\n",
+        str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%d)\n",
             GetHash().ToString(),
             nTime,
             nVersion,
@@ -729,7 +729,7 @@ public:
     {
         // Take last bit of block hash as entropy bit
         unsigned int nEntropyBit = ((GetHash().Get64()) & 1llu);
-        LogPrint("stakemodifier", "GetStakeEntropyBit: hashBlock=%s nEntropyBit=%" PRIszu "\n", GetHash().ToString(), nEntropyBit);
+        LogPrint("stakemodifier", "GetStakeEntropyBit: hashBlock=%s nEntropyBit=%u\n", GetHash().ToString(), nEntropyBit);
         return nEntropyBit;
     }
 
@@ -865,8 +865,8 @@ public:
 
     std::string ToString() const
     {
-        std::stringstream s;
-        s << strprintf("CBlock(hash=%s, ver=%" PRI64d ", hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%" PRIszu ", nBits=%08x, nNonce=%" PRIszu ", vtx=%" PRIszu ", vchBlockSig=%s)\n", // PHS %u 를 %" PRIszu " 로
+        std::stringstream s;  // PHS %u 를 %u 로
+        s << strprintf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%u, vchBlockSig=%s)\n",
             GetHash().ToString(),
             nVersion,
             hashPrevBlock.ToString(),
@@ -1116,7 +1116,7 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%" PRIszu ", nBlockPos=%-6d nHeight=%" PRI64d ", nMint=%s, nMoneySupply=%s, nFlags=(%s)(%" PRI64d ")(%s), nStakeModifier=%016x, hashProof=%s, prevoutStake=(%s), nStakeTime=%" PRI64d " merkle=%s, hashBlock=%s)", // PHS %u 를 %" PRIszu " 로
+        return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%u, nBlockPos=%-6d nHeight=%d, nMint=%s, nMoneySupply=%s, nFlags=(%s)(%d)(%s), nStakeModifier=%016x, hashProof=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)", // PHS %u 를 %u 로
             pprev, pnext, nFile, nBlockPos, nHeight,
             FormatMoney(nMint), FormatMoney(nMoneySupply),
             GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",

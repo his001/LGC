@@ -79,7 +79,7 @@ Object CallRPC(const string& strMethod, const Array& params)
     if (nStatus == HTTP_UNAUTHORIZED)
         throw runtime_error("incorrect rpcuser or rpcpassword (authorization failed)");
     else if (nStatus >= 400 && nStatus != HTTP_BAD_REQUEST && nStatus != HTTP_NOT_FOUND && nStatus != HTTP_INTERNAL_SERVER_ERROR)
-        throw runtime_error(strprintf("server returned HTTP error %" PRI64d "", nStatus));
+        throw runtime_error(strprintf("server returned HTTP error %d", nStatus));
     else if (strReply.empty())
         throw runtime_error("no response from server");
 

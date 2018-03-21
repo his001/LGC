@@ -2770,8 +2770,8 @@ alertnotify=echo %%s | mail -s &quot;LGC Alert&quot; admin@foo.com
     </message>
     <message>
         <location line="+6"/>
-        <source>Listen for connections on &lt;port&gt; (default: 15714 or testnet: 25714)</source>
-        <translation>监听&lt;port&gt;端口的连接 (默认: 15714 测试网: 25714)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 33814 or testnet: 32714)</source>
+        <translation>监听&lt;port&gt;端口的连接 (默认: 33814 测试网: 32714)</translation>
     </message>
     <message>
         <location line="+1"/>

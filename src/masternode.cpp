@@ -81,7 +81,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         strMessage = addr.ToString() + boost::lexical_cast<std::string>(sigTime) + vchPubKey + vchPubKey2 + boost::lexical_cast<std::string>(protocolVersion);
 
         if(protocolVersion < MIN_MN_PROTO_VERSION) {
-            LogPrintf("dsee - ignoring outdated masternode %s protocol version %" PRI64d "\n", vin.ToString().c_str(), protocolVersion);
+            LogPrintf("dsee - ignoring outdated masternode %s protocol version %d\n", vin.ToString().c_str(), protocolVersion);
             return;
         }
 
@@ -163,7 +163,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
             if(fDebug) LogPrintf("dsee - Accepted masternode entry %i %i\n", count, current);
 
             if(GetInputAge(vin) < MASTERNODE_MIN_CONFIRMATIONS){
-                LogPrintf("dsee - Input must have least %" PRI64d " confirmations\n", MASTERNODE_MIN_CONFIRMATIONS);
+                LogPrintf("dsee - Input must have least %d confirmations\n", MASTERNODE_MIN_CONFIRMATIONS);
                 Misbehaving(pfrom->GetId(), 20);
                 return;
             }
@@ -217,7 +217,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         }
 
         if (sigTime <= GetAdjustedTime() - 60 * 60) {
-            LogPrintf("dseep - Signature rejected, too far into the past %s - %" PRI64d " %" PRI64d " \n", vin.ToString().c_str(), sigTime, GetAdjustedTime());
+            LogPrintf("dseep - Signature rejected, too far into the past %s - %d %d \n", vin.ToString().c_str(), sigTime, GetAdjustedTime());
             return;
         }
 
@@ -317,7 +317,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
             i++;
         }
 
-        LogPrintf("dseg - Sent %" PRI64d " masternode entries to %s\n", count, pfrom->addr.ToString().c_str());
+        LogPrintf("dseg - Sent %d masternode entries to %s\n", count, pfrom->addr.ToString().c_str());
     }
 
     else if (strCommand == "mnget") { //Masternode Payments Request Sync
@@ -343,12 +343,12 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
 
         uint256 hash = winner.GetHash();
         if(mapSeenMasternodeVotes.count(hash)) {
-            if(fDebug) LogPrintf("mnw - seen vote %s Height %" PRI64d " bestHeight %" PRI64d "\n", hash.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
+            if(fDebug) LogPrintf("mnw - seen vote %s Height %d bestHeight %d\n", hash.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
             return;
         }
 
         if(winner.nBlockHeight < pindexBest->nHeight - 10 || winner.nBlockHeight > pindexBest->nHeight+20){
-            LogPrintf("mnw - winner out of range %s Height %" PRI64d " bestHeight %" PRI64d "\n", winner.vin.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
+            LogPrintf("mnw - winner out of range %s Height %d bestHeight %d\n", winner.vin.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
             return;
         }
 
@@ -358,7 +358,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
             return;
         }
 
-        LogPrintf("mnw - winning vote  %s Height %" PRI64d " bestHeight %" PRI64d "\n", winner.vin.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
+        LogPrintf("mnw - winning vote  %s Height %d bestHeight %d\n", winner.vin.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
 
         if(!masternodePayments.CheckSignature(winner)){
             LogPrintf("mnw - invalid signature\n");
@@ -733,7 +733,7 @@ void CMasternodePayments::CleanPaymentList()
     vector<CMasternodePaymentWinner>::iterator it;
     for(it=vWinning.begin();it<vWinning.end();it++){
         if(pindexBest->nHeight - (*it).nBlockHeight > nLimit){
-            if(fDebug) LogPrintf("CMasternodePayments::CleanPaymentList - Removing old masternode payment - block %" PRI64d "\n", (*it).nBlockHeight);
+            if(fDebug) LogPrintf("CMasternodePayments::CleanPaymentList - Removing old masternode payment - block %d\n", (*it).nBlockHeight);
             vWinning.erase(it);
             break;
         }
