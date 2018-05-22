@@ -1,2 +1,2 @@
-build/
-src/qt/locale/*.qm
+src/qt/res/images/Thumbs.db
+doc/Thumbs.db

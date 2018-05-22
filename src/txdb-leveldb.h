@@ -42,13 +42,11 @@ public:
 
 private:
     leveldb::DB *pdb;  // Points to the global instance.
-
     // A batch stores up writes and deletes for atomic application. When this
     // field is non-NULL, writes/deletes go there instead of directly to disk.
     leveldb::WriteBatch *activeBatch;
     leveldb::Options options;
     bool fReadOnly;
-    int nVersion;
 
 protected:
     // Returns true and sets (value,false) if activeBatch contains the given key
@@ -81,7 +79,7 @@ protected:
                 if (status.IsNotFound())
                     return false;
                 // Some unexpected error.
-                LogPrintf("LevelDB read failure: %s\n", status.ToString());
+                printf("LevelDB read failure: %s\n", status.ToString().c_str());
                 return false;
             }
         }
@@ -116,7 +114,7 @@ protected:
         }
         leveldb::Status status = pdb->Put(leveldb::WriteOptions(), ssKey.str(), ssValue.str());
         if (!status.ok()) {
-            LogPrintf("LevelDB write failure: %s\n", status.ToString());
+            printf("LevelDB write failure: %s\n", status.ToString().c_str());
             return false;
         }
         return true;
@@ -183,8 +181,6 @@ public:
         return Write(std::string("version"), nVersion);
     }
 
-    bool ReadAddrIndex(uint160 addrHash, std::vector<uint256>& txHashes);
-    bool WriteAddrIndex(uint160 addrHash, uint256 txHash);
     bool ReadTxIndex(uint256 hash, CTxIndex& txindex);
     bool UpdateTxIndex(uint256 hash, const CTxIndex& txindex);
     bool AddTxIndex(const CTransaction& tx, const CDiskTxPos& pos, int nHeight);

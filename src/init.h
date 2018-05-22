@@ -7,16 +7,17 @@
 
 #include "wallet.h"
 
-namespace boost {
-    class thread_group;
-} // namespace boost
-
 extern CWallet* pwalletMain;
+
 void StartShutdown();
-bool ShutdownRequested();
-void Shutdown();
-bool AppInit2(boost::thread_group& threadGroup);
+void Shutdown(void* parg);
+bool AppInit2();
 std::string HelpMessage();
-extern bool fOnlyTor;
+
+
+//extern int _proxyPort = 9090;
+//extern int _rpcPort = 35351;
+//extern int _p2pPort = 35352;
+
 
 #endif

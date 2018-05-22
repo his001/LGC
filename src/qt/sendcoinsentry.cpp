@@ -1,13 +1,11 @@
 #include "sendcoinsentry.h"
 #include "ui_sendcoinsentry.h"
-
 #include "guiutil.h"
 #include "bitcoinunits.h"
 #include "addressbookpage.h"
 #include "walletmodel.h"
 #include "optionsmodel.h"
 #include "addresstablemodel.h"
-#include "stealth.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -25,7 +23,7 @@ SendCoinsEntry::SendCoinsEntry(QWidget *parent) :
 #if QT_VERSION >= 0x040700
     /* Do not move this to the XML file, Qt before 4.7 will choke on it */
     ui->addAsLabel->setPlaceholderText(tr("Enter a label for this address to add it to your address book"));
-    ui->payTo->setPlaceholderText(tr("Enter a LGC address (e.g. LdAXWq4nGdsQgRqvkUJNiCN5yqVbqb445H)"));
+    ui->payTo->setPlaceholderText(tr("Enter a valid LGC address"));
 #endif
     setFocusPolicy(Qt::TabFocus);
     setFocusProxy(ui->payTo);
@@ -73,8 +71,8 @@ void SendCoinsEntry::setModel(WalletModel *model)
 
     if(model && model->getOptionsModel())
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
-
-    connect(ui->payAmount, SIGNAL(textChanged()), this, SIGNAL(payAmountChanged()));
+        
+        connect(ui->payAmount, SIGNAL(textChanged()), this, SIGNAL(payAmountChanged()));
 
     clear();
 }
@@ -136,12 +134,6 @@ SendCoinsRecipient SendCoinsEntry::getValue()
     rv.label = ui->addAsLabel->text();
     rv.amount = ui->payAmount->value();
 
- if (rv.address.length() > 75 
-        && IsStealthAddress(rv.address.toStdString()))
-        rv.typeInd = AddressTableModel::AT_Stealth;
-    else
-        rv.typeInd = AddressTableModel::AT_Normal;
-
     return rv;
 }
 
@@ -152,6 +144,7 @@ QWidget *SendCoinsEntry::setupTabChain(QWidget *prev)
     QWidget::setTabOrder(ui->addressBookButton, ui->pasteButton);
     QWidget::setTabOrder(ui->pasteButton, ui->deleteButton);
     QWidget::setTabOrder(ui->deleteButton, ui->addAsLabel);
+
     return ui->payAmount->setupTabChain(ui->addAsLabel);
 }
 

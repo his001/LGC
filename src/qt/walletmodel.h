@@ -6,8 +6,6 @@
 #include <map>
 
 #include "allocators.h" /* for SecureString */
-#include "instantx.h"
-#include "wallet.h"
 
 class OptionsModel;
 class AddressTableModel;
@@ -29,11 +27,7 @@ class SendCoinsRecipient
 public:
     QString address;
     QString label;
-    QString narration;
-    int typeInd;
     qint64 amount;
-    AvailableCoinsType inputType;
-    bool useInstantX;
 };
 
 /** Interface to Bitcoin wallet from Qt view code. */
@@ -55,28 +49,26 @@ public:
         DuplicateAddress,
         TransactionCreationFailed, // Error returned when wallet is still locked
         TransactionCommitFailed,
-        NarrationTooLong,
-        Aborted,
-	AnonymizeOnlyUnlocked
+        Aborted
     };
 
     enum EncryptionStatus
     {
         Unencrypted,  // !wallet->IsCrypted()
         Locked,       // wallet->IsCrypted() && wallet->IsLocked()
-        Unlocked,      // wallet->IsCrypted() && !wallet->IsLocked()
-	UnlockedForAnonymizationOnly
+        Unlocked,     // wallet->IsCrypted() && !wallet->IsLocked()
+        Minted        // ToDo:
     };
 
     OptionsModel *getOptionsModel();
     AddressTableModel *getAddressTableModel();
     TransactionTableModel *getTransactionTableModel();
 
-    qint64 getBalance(const CCoinControl *coinControl=NULL) const;
+    qint64 getBalance() const;
     qint64 getStake() const;
     qint64 getUnconfirmedBalance() const;
     qint64 getImmatureBalance() const;
-    qint64 getAnonymizedBalance() const;
+    int getNumTransactions() const;
     EncryptionStatus getEncryptionStatus() const;
 
     // Check address for validity
@@ -100,12 +92,13 @@ public:
     // Wallet encryption
     bool setWalletEncrypted(bool encrypted, const SecureString &passphrase);
     // Passphrase only needed when unlocking
-    bool setWalletLocked(bool locked, const SecureString &passPhrase=SecureString(), bool anonymizeOnly=false);
+    bool setWalletLocked(EncryptionStatus status, const SecureString &passPhrase=SecureString());
     bool changePassphrase(const SecureString &oldPass, const SecureString &newPass);
-    // Is wallet unlocked for anonymization only?
-    bool isAnonymizeOnlyUnlocked();
     // Wallet backup
     bool backupWallet(const QString &filename);
+    // Access mint check
+    bool GetWalletMinted();
+    void SetWalletMinted(bool fMinted);
 
     // RAI object for unlocking wallet, returned by requestUnlock()
     class UnlockContext
@@ -128,7 +121,7 @@ public:
     };
 
     UnlockContext requestUnlock();
-
+    
     bool getPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const;
     void getOutputs(const std::vector<COutPoint>& vOutpoints, std::vector<COutput>& vOutputs);
     void listCoins(std::map<QString, std::vector<COutput> >& mapCoins) const;
@@ -152,10 +145,7 @@ private:
     qint64 cachedStake;
     qint64 cachedUnconfirmedBalance;
     qint64 cachedImmatureBalance;
-    qint64 cachedAnonymizedBalance;
     qint64 cachedNumTransactions;
-    int cachedTxLocks;
-    int cachedDarksendRounds;
     EncryptionStatus cachedEncryptionStatus;
     int cachedNumBlocks;
 
@@ -178,7 +168,10 @@ public slots:
 
 signals:
     // Signal that balance in wallet changed
-    void balanceChanged(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance, qint64 anonymizedBalance);
+    void balanceChanged(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
+
+    // Number of transactions in wallet changed
+    void numTransactionsChanged(int count);
 
     // Encryption status of wallet changed
     void encryptionStatusChanged(int status);
@@ -188,8 +181,9 @@ signals:
     // this means that the unlocking failed or was cancelled.
     void requireUnlock();
 
-    // Asynchronous message notification
-    void message(const QString &title, const QString &message, bool modal, unsigned int style);
+    // Asynchronous error notification
+    void error(const QString &title, const QString &message, bool modal);
 };
+
 
 #endif // WALLETMODEL_H

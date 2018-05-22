@@ -1,14 +1,18 @@
 #include "bitcoinamountfield.h"
-
 #include "qvaluecombobox.h"
 #include "bitcoinunits.h"
+
 #include "guiconstants.h"
 
+#include <QLabel>
+#include <QLineEdit>
+#include <QRegExpValidator>
 #include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QDoubleSpinBox>
+#include <QComboBox>
 #include <QApplication>
-#include <qmath.h> // for qPow()
+#include <qmath.h>
 
 BitcoinAmountField::BitcoinAmountField(QWidget *parent):
         QWidget(parent), amount(0), currentUnit(-1)
@@ -97,11 +101,7 @@ bool BitcoinAmountField::eventFilter(QObject *object, QEvent *event)
         if (keyEvent->key() == Qt::Key_Comma)
         {
             // Translate a comma into a period
-            QKeyEvent periodKeyEvent(event->type(),
-                Qt::Key_Period,
-                 keyEvent->modifiers(), ".",
-                 keyEvent->isAutoRepeat(),
-                 keyEvent->count());
+            QKeyEvent periodKeyEvent(event->type(), Qt::Key_Period, keyEvent->modifiers(), ".", keyEvent->isAutoRepeat(), keyEvent->count());
             qApp->sendEvent(object, &periodKeyEvent);
             return true;
         }

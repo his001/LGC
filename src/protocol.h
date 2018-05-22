@@ -10,11 +10,19 @@
 #ifndef __INCLUDED_PROTOCOL_H__
 #define __INCLUDED_PROTOCOL_H__
 
-#include "chainparams.h"
 #include "serialize.h"
 #include "netbase.h"
 #include <string>
 #include "uint256.h"
+
+extern bool fTestNet;
+static inline unsigned short GetDefaultPort(const bool testnet = fTestNet)
+{
+    return testnet ? 25352 : 35352;
+}
+
+
+extern unsigned char pchMessageStart[4];
 
 /** Message header.
  * (4) message start.
@@ -42,13 +50,13 @@ class CMessageHeader
     // TODO: make private (improves encapsulation)
     public:
         enum {
+            MESSAGE_START_SIZE=sizeof(::pchMessageStart),
             COMMAND_SIZE=12,
             MESSAGE_SIZE_SIZE=sizeof(int),
             CHECKSUM_SIZE=sizeof(int),
 
             MESSAGE_SIZE_OFFSET=MESSAGE_START_SIZE+COMMAND_SIZE,
-            CHECKSUM_OFFSET=MESSAGE_SIZE_OFFSET+MESSAGE_SIZE_SIZE,
-            HEADER_SIZE=MESSAGE_START_SIZE+COMMAND_SIZE+MESSAGE_SIZE_SIZE+CHECKSUM_SIZE
+            CHECKSUM_OFFSET=MESSAGE_SIZE_OFFSET+MESSAGE_SIZE_SIZE
         };
         char pchMessageStart[MESSAGE_START_SIZE];
         char pchCommand[COMMAND_SIZE];
@@ -67,7 +75,7 @@ class CAddress : public CService
 {
     public:
         CAddress();
-        explicit CAddress(CService ipIn, uint64_t nServicesIn=NODE_NETWORK);
+        explicit CAddress(CService ipIn, uint64 nServicesIn=NODE_NETWORK);
 
         void Init();
 
@@ -86,16 +94,17 @@ class CAddress : public CService
              READWRITE(*pip);
             )
 
+        void print() const;
 
     // TODO: make private (improves encapsulation)
     public:
-        uint64_t nServices;
+        uint64 nServices;
 
         // disk and network only
         unsigned int nTime;
 
         // memory only
-        int64_t nLastTry;
+        int64 nLastTry;
 };
 
 /** inv message data */
@@ -117,13 +126,12 @@ class CInv
         bool IsKnownType() const;
         const char* GetCommand() const;
         std::string ToString() const;
+        void print() const;
 
     // TODO: make private (improves encapsulation)
     public:
         int type;
         uint256 hash;
 };
-
-
 
 #endif // __INCLUDED_PROTOCOL_H__

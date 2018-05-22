@@ -56,6 +56,45 @@ qint64 BitcoinUnits::factor(int unit)
 {
     switch(unit)
     {
+    case BTC:  return 1000000;
+    case mBTC: return 1000;
+    case uBTC: return 1;
+    default:   return 1000000;
+    }
+}
+
+int BitcoinUnits::amountDigits(int unit)
+{
+    switch(unit)
+    {
+      /*
+      case BTC: return 8; // 21,000,000 (# digits, without commas) 50000000000 = 11
+      case mBTC: return 11; // 21,000,000,000
+      case uBTC: return 14; // 21,000,000,000,000
+      default: return 0;
+      */
+      case BTC: return 8+2; // 21,000,000 (# digits, without commas) 50000000000 = 11 이지만 최대 십억 단위까지만 전송 되도록 변경 2018-04-30
+      case mBTC: return 11+2; // 21,000,000,000
+      case uBTC: return 14+2; // 21,000,000,000,000
+      default: return 0;
+    }
+}
+
+int BitcoinUnits::decimals(int unit)
+{
+    switch(unit)
+    {
+    case BTC: return 6;
+    case mBTC: return 3;
+    case uBTC: return 0;
+    default: return 0;
+    }
+}
+/*
+qint64 BitcoinUnits::factor(int unit)
+{
+    switch(unit)
+    {
     case BTC:  return 100000000;
     case mBTC: return 100000;
     case uBTC: return 100;
@@ -84,7 +123,7 @@ int BitcoinUnits::decimals(int unit)
     default: return 0;
     }
 }
-
+*/
 QString BitcoinUnits::format(int unit, qint64 n, bool fPlus)
 {
     // Note: not using straight sprintf here because we do NOT want

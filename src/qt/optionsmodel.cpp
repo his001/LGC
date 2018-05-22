@@ -1,14 +1,10 @@
 #include "optionsmodel.h"
-
 #include "bitcoinunits.h"
-#include "init.h"
-#include "wallet.h"
-#include "walletdb.h"
-#include "guiutil.h"
-
 #include <QSettings>
 
-bool fUseBlackTheme;
+#include "init.h"
+#include "walletdb.h"
+#include "guiutil.h"
 
 OptionsModel::OptionsModel(QObject *parent) :
     QAbstractListModel(parent)
@@ -19,18 +15,24 @@ OptionsModel::OptionsModel(QObject *parent) :
 bool static ApplyProxySettings()
 {
     QSettings settings;
-    CService addrProxy(settings.value("addrProxy", "127.0.0.1:9050").toString().toStdString());
+    CService addrProxy(settings.value("addrProxy", "127.0.0.1:9090").toString().toStdString()); //9090
+    int nSocksVersion(settings.value("nSocksVersion", 5).toInt());
     if (!settings.value("fUseProxy", false).toBool()) {
         addrProxy = CService();
+        nSocksVersion = 0;
         return false;
     }
-    if (!addrProxy.IsValid())
+    if (nSocksVersion && !addrProxy.IsValid())
         return false;
     if (!IsLimited(NET_IPV4))
-        SetProxy(NET_IPV4, addrProxy);
-    if (!IsLimited(NET_IPV6))
-        SetProxy(NET_IPV6, addrProxy);
-    SetNameProxy(addrProxy);
+        SetProxy(NET_IPV4, addrProxy, nSocksVersion);
+    if (nSocksVersion > 4) {
+#ifdef USE_IPV6
+        if (!IsLimited(NET_IPV6))
+            SetProxy(NET_IPV6, addrProxy, nSocksVersion);
+#endif
+        SetNameProxy(addrProxy, nSocksVersion);
+    }
     return true;
 }
 
@@ -40,22 +42,13 @@ void OptionsModel::Init()
 
     // These are Qt-only settings:
     nDisplayUnit = settings.value("nDisplayUnit", BitcoinUnits::BTC).toInt();
+    bDisplayAddresses = settings.value("bDisplayAddresses", false).toBool();
+    bDisplayDateTimeISO = settings.value("bDisplayDateTimeISO", false).toBool();
     fMinimizeToTray = settings.value("fMinimizeToTray", false).toBool();
     fMinimizeOnClose = settings.value("fMinimizeOnClose", false).toBool();
     fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
     nTransactionFee = settings.value("nTransactionFee").toLongLong();
-    nReserveBalance = settings.value("nReserveBalance").toLongLong();
     language = settings.value("language", "").toString();
-    fUseBlackTheme = settings.value("fUseBlackTheme", false).toBool();
-
-    if (!settings.contains("nDarksendRounds"))
-        settings.setValue("nDarksendRounds", 2);
-
-    if (!settings.contains("nAnonymizeLGCAmount"))
-        settings.setValue("nAnonymizeLGCAmount", 1000);
-
-    nDarksendRounds = settings.value("nDarksendRounds").toLongLong();
-    nAnonymizeLGCAmount = settings.value("nAnonymizeLGCAmount").toLongLong();
 
     // These are shared with core Bitcoin; we want
     // command-line options to override the GUI settings:
@@ -63,16 +56,73 @@ void OptionsModel::Init()
         SoftSetBoolArg("-upnp", settings.value("fUseUPnP").toBool());
     if (settings.contains("addrProxy") && settings.value("fUseProxy").toBool())
         SoftSetArg("-proxy", settings.value("addrProxy").toString().toStdString());
-    if (settings.contains("fMinimizeCoinAge"))
-        SoftSetBoolArg("-minimizecoinage", settings.value("fMinimizeCoinAge").toBool());
+    if (settings.contains("nSocksVersion") && settings.value("fUseProxy").toBool())
+        SoftSetArg("-socks", settings.value("nSocksVersion").toString().toStdString());
+    if (settings.contains("detachDB"))
+        SoftSetBoolArg("-detachdb", settings.value("detachDB").toBool());
     if (!language.isEmpty())
         SoftSetArg("-lang", language.toStdString());
-
-    if (settings.contains("nDarksendRounds"))
-        SoftSetArg("-darksendrounds", settings.value("nDarksendRounds").toString().toStdString());
-    if (settings.contains("nAnonymizeLGCAmount"))
-        SoftSetArg("-anonymizeLGCamount", settings.value("nAnonymizeLGCAmount").toString().toStdString());
 }
+
+bool OptionsModel::Upgrade()
+{
+    QSettings settings;
+
+    if (settings.contains("bImportFinished"))
+        return false; // Already upgraded
+
+    settings.setValue("bImportFinished", true);
+
+    // Move settings from old wallet.dat (if any):
+    CWalletDB walletdb("wallet.dat");
+
+    QList<QString> intOptions;
+    intOptions << "nDisplayUnit" << "nTransactionFee";
+    foreach(QString key, intOptions)
+    {
+        int value = 0;
+        if (walletdb.ReadSetting(key.toStdString(), value))
+        {
+            settings.setValue(key, value);
+            walletdb.EraseSetting(key.toStdString());
+        }
+    }
+    QList<QString> boolOptions;
+    boolOptions << "bDisplayAddresses" << "bDisplayDateTimeISO" << "fMinimizeToTray" << "fMinimizeOnClose" << "fUseProxy" << "fUseUPnP";
+    foreach(QString key, boolOptions)
+    {
+        bool value = false;
+        if (walletdb.ReadSetting(key.toStdString(), value))
+        {
+            settings.setValue(key, value);
+            walletdb.EraseSetting(key.toStdString());
+        }
+    }
+    try
+    {
+        CAddress addrProxyAddress;
+        if (walletdb.ReadSetting("addrProxy", addrProxyAddress))
+        {
+            settings.setValue("addrProxy", addrProxyAddress.ToStringIPPort().c_str());
+            walletdb.EraseSetting("addrProxy");
+        }
+    }
+    catch (std::ios_base::failure &e)
+    {
+        // 0.6.0rc1 saved this as a CService, which causes failure when parsing as a CAddress
+        CService addrProxy;
+        if (walletdb.ReadSetting("addrProxy", addrProxy))
+        {
+            settings.setValue("addrProxy", addrProxy.ToStringIPPort().c_str());
+            walletdb.EraseSetting("addrProxy");
+        }
+    }
+    ApplyProxySettings();
+    Init();
+
+    return true;
+}
+
 
 int OptionsModel::rowCount(const QModelIndex & parent) const
 {
@@ -99,31 +149,33 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
         case ProxyIP: {
             proxyType proxy;
             if (GetProxy(NET_IPV4, proxy))
-                return QVariant(QString::fromStdString(proxy.ToStringIP()));
+                return QVariant(QString::fromStdString(proxy.first.ToStringIP()));
             else
                 return QVariant(QString::fromStdString("127.0.0.1"));
         }
         case ProxyPort: {
             proxyType proxy;
             if (GetProxy(NET_IPV4, proxy))
-                return QVariant(proxy.GetPort());
+                return QVariant(proxy.first.GetPort());
             else
-                return QVariant(9050);
+                return QVariant(9090); //9090
         }
+        case ProxySocksVersion:
+            return settings.value("nSocksVersion", 5);
         case Fee:
-            return QVariant((qint64) nTransactionFee);
-        case ReserveBalance:
-            return QVariant((qint64) nReserveBalance);
+            return QVariant(nTransactionFee);
         case DisplayUnit:
             return QVariant(nDisplayUnit);
+        case DisplayAddresses:
+            return QVariant(bDisplayAddresses);
+        case DisplayDateTimeISO:
+            return QVariant(bDisplayDateTimeISO);
+        case DetachDatabases:
+            return QVariant(bitdb.GetDetach());
         case Language:
             return settings.value("language", "");
         case CoinControlFeatures:
             return QVariant(fCoinControlFeatures);
-        case MinimizeCoinAge:
-            return settings.value("fMinimizeCoinAge", GetBoolArg("-minimizecoinage", false));
-        case UseBlackTheme:
-            return QVariant(fUseBlackTheme);
         default:
             return QVariant();
         }
@@ -147,8 +199,9 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             settings.setValue("fMinimizeToTray", fMinimizeToTray);
             break;
         case MapPortUPnP:
-            settings.setValue("fUseUPnP", value.toBool());
-            MapPort(value.toBool());
+            fUseUPnP = value.toBool();
+            settings.setValue("fUseUPnP", fUseUPnP);
+            MapPort();
             break;
         case MinimizeOnClose:
             fMinimizeOnClose = value.toBool();
@@ -160,39 +213,58 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             break;
         case ProxyIP: {
             proxyType proxy;
-            proxy = CService("127.0.0.1", 9050);
+            proxy.first = CService("127.0.0.1", 9090); // 9090
             GetProxy(NET_IPV4, proxy);
 
             CNetAddr addr(value.toString().toStdString());
-            proxy.SetIP(addr);
-            settings.setValue("addrProxy", proxy.ToStringIPPort().c_str());
+            proxy.first.SetIP(addr);
+            settings.setValue("addrProxy", proxy.first.ToStringIPPort().c_str());
             successful = ApplyProxySettings();
         }
         break;
         case ProxyPort: {
             proxyType proxy;
-            proxy = CService("127.0.0.1", 9050);
+            proxy.first = CService("127.0.0.1", 9090); //9090
             GetProxy(NET_IPV4, proxy);
 
-            proxy.SetPort(value.toInt());
-            settings.setValue("addrProxy", proxy.ToStringIPPort().c_str());
+            proxy.first.SetPort(value.toInt());
+            settings.setValue("addrProxy", proxy.first.ToStringIPPort().c_str());
+            successful = ApplyProxySettings();
+        }
+        break;
+        case ProxySocksVersion: {
+            proxyType proxy;
+            proxy.second = 5;
+            GetProxy(NET_IPV4, proxy);
+
+            proxy.second = value.toInt();
+            settings.setValue("nSocksVersion", proxy.second);
             successful = ApplyProxySettings();
         }
         break;
         case Fee:
             nTransactionFee = value.toLongLong();
-            settings.setValue("nTransactionFee", (qint64) nTransactionFee);
+            settings.setValue("nTransactionFee", nTransactionFee);
             emit transactionFeeChanged(nTransactionFee);
-            break;
-        case ReserveBalance:
-            nReserveBalance = value.toLongLong();
-            settings.setValue("nReserveBalance", (qint64) nReserveBalance);
-            emit reserveBalanceChanged(nReserveBalance);
             break;
         case DisplayUnit:
             nDisplayUnit = value.toInt();
             settings.setValue("nDisplayUnit", nDisplayUnit);
             emit displayUnitChanged(nDisplayUnit);
+            break;
+        case DisplayAddresses:
+            bDisplayAddresses = value.toBool();
+            settings.setValue("bDisplayAddresses", bDisplayAddresses);
+            break;
+        case DisplayDateTimeISO:
+            bDisplayDateTimeISO = value.toBool();
+            settings.setValue("bDisplayDateTimeISO", bDisplayDateTimeISO);
+            break;
+        case DetachDatabases: {
+            bool fDetachDB = value.toBool();
+            bitdb.SetDetach(fDetachDB);
+            settings.setValue("detachDB", fDetachDB);
+            }
             break;
         case Language:
             settings.setValue("language", value);
@@ -202,24 +274,6 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             settings.setValue("fCoinControlFeatures", fCoinControlFeatures);
             emit coinControlFeaturesChanged(fCoinControlFeatures);
             }
-            break;
-        case MinimizeCoinAge:
-           fMinimizeCoinAge = value.toBool();
-           settings.setValue("fMinimizeCoinAge", fMinimizeCoinAge);
-           break;
-        case UseBlackTheme:
-            fUseBlackTheme = value.toBool();
-            settings.setValue("fUseBlackTheme", fUseBlackTheme);
-            break;
-        case DarksendRounds:
-            nDarksendRounds = value.toInt();
-            settings.setValue("nDarksendRounds", nDarksendRounds);
-            emit darksendRoundsChanged(nDarksendRounds);
-            break;
-        case anonymizeLGCAmount:
-            nAnonymizeLGCAmount = value.toInt();
-            settings.setValue("nAnonymizeLGCAmount", nAnonymizeLGCAmount);
-            emit anonymizeLGCAmountChanged(nAnonymizeLGCAmount);
             break;
         default:
             break;
@@ -235,15 +289,11 @@ qint64 OptionsModel::getTransactionFee()
     return nTransactionFee;
 }
 
-qint64 OptionsModel::getReserveBalance()
-{
-    return nReserveBalance;
-}
-
 bool OptionsModel::getCoinControlFeatures()
 {
-    return fCoinControlFeatures;
+     return fCoinControlFeatures;
 }
+ 
 
 bool OptionsModel::getMinimizeToTray()
 {
@@ -258,4 +308,14 @@ bool OptionsModel::getMinimizeOnClose()
 int OptionsModel::getDisplayUnit()
 {
     return nDisplayUnit;
+}
+
+bool OptionsModel::getDisplayAddresses()
+{
+    return bDisplayAddresses;
+}
+
+bool OptionsModel::getDisplayDateTimeISO()
+{
+    return bDisplayDateTimeISO;
 }

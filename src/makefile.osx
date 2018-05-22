@@ -3,7 +3,7 @@
 # Distributed under the MIT/X11 software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-# Mac OS X makefile for Linda
+# Mac OS X makefile for bitcoin
 # Originally by Laszlo Hanyecz (solar@heliacal.net)
 
 CXX=llvm-g++
@@ -20,12 +20,17 @@ LIBPATHS= \
  -L"$(DEPSDIR)/lib/db48"
 
 USE_UPNP:=1
-USE_WALLET:=1
+USE_IPV6:=1
+USE_LEVELDB:=1
 
 LIBS= -dead_strip
 
+TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
+
 ifdef STATIC
-# Build STATIC if you are redistributing the Lindad binary
+# Build STATIC if you are redistributing the bitcoind binary
+TESTLIBS += \
+ $(DEPSDIR)/lib/libboost_unit_test_framework-mt.a
 LIBS += \
  $(DEPSDIR)/lib/db48/libdb_cxx-4.8.a \
  $(DEPSDIR)/lib/libboost_system-mt.a \
@@ -36,6 +41,8 @@ LIBS += \
  $(DEPSDIR)/lib/libcrypto.a \
  -lz
 else
+TESTLIBS += \
+ -lboost_unit_test_framework-mt
 LIBS += \
  -ldb_cxx-4.8 \
  -lboost_system-mt \
@@ -45,6 +52,7 @@ LIBS += \
  -lssl \
  -lcrypto \
  -lz
+TESTDEFS += -DBOOST_TEST_DYN_LINK
 endif
 
 DEFS=-DMAC_OSX -DMSG_NOSIGNAL=0 -DBOOST_SPIRIT_THREADSAFE
@@ -53,13 +61,13 @@ ifdef RELEASE
 # Compile for maximum compatibility and smallest size.
 # This requires that dependencies are compiled
 # the same way.
-CFLAGS = -mmacosx-version-min=10.5 -arch x86_64 -O2 -msse2
+CFLAGS = -mmacosx-version-min=10.5 -arch x86_64 -O3 -msse2
 else
 CFLAGS = -g -msse2
 endif
 
 # ppc doesn't work because we don't support big-endian
-CFLAGS += -Wall -Wextra -Wformat -Wno-ignored-qualifiers -Wformat-security -Wno-unused-parameter \
+CFLAGS += -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter \
     $(DEBUGFLAGS) $(DEFS) $(INCLUDEPATHS)
 
 OBJS= \
@@ -70,45 +78,30 @@ OBJS= \
     obj/addrman.o \
     obj/crypter.o \
     obj/key.o \
+    obj/db.o \
     obj/init.o \
-    obj/bitcoind.o \
     obj/keystore.o \
-    obj/core.o \
     obj/main.o \
     obj/net.o \
     obj/protocol.o \
-    obj/rpcclient.o \
-    obj/rpcprotocol.o \
-    obj/rpcserver.o \
-    obj/rpcmisc.o \
+    obj/bitcoinrpc.o \
+    obj/rpcdump.o \
     obj/rpcnet.o \
+    obj/rpcmining.o \
+    obj/rpcwallet.o \
     obj/rpcblockchain.o \
     obj/rpcrawtransaction.o \
-    obj/timedata.o \
     obj/script.o \
     obj/sync.o \
-    obj/txmempool.o \
     obj/util.o \
-    obj/hash.o \
+    obj/wallet.o \
+    obj/walletdb.o \
     obj/noui.o \
     obj/pbkdf2.o \
     obj/kernel.o \
-    obj/scrypt.o \
+    obj/scrypt_mine.o \
     obj/scrypt-x86.o \
-    obj/scrypt-x86_64.o \
-    obj/chainparams.o
-
-ifeq (${USE_WALLET}, 1)
-    DEFS += -DENABLE_WALLET
-    OBJS += \
-        obj/db.o \
-        obj/miner.o \
-        obj/rpcdump.o \
-        obj/rpcmining.o \
-        obj/rpcwallet.o \
-        obj/wallet.o \
-        obj/walletdb.o
-endif
+    obj/scrypt-x86_64.o
 
 ifndef USE_UPNP
 	override USE_UPNP = -
@@ -122,18 +115,34 @@ else
 endif
 endif
 
-all: Lindad
+ifneq (${USE_IPV6}, -)
+	DEFS += -DUSE_IPV6=$(USE_IPV6)
+endif
 
+all: zeitcoind
+
+#
+# LevelDB support
+#
+ifdef USE_LEVELDB
 LIBS += $(CURDIR)/leveldb/libleveldb.a $(CURDIR)/leveldb/libmemenv.a
-DEFS += $(addprefix -I,$(CURDIR)/leveldb/include)
+DEFS += $(addprefix -I,$(CURDIR)/leveldb/include) -DUSE_LEVELDB
 DEFS += $(addprefix -I,$(CURDIR)/leveldb/helpers)
 OBJS += obj/txdb-leveldb.o
 leveldb/libleveldb.a:
-	@echo "Building LevelDB ..."; cd leveldb; make libleveldb.a libmemenv.a; cd ..
+	@echo "Building LevelDB ..."; cd leveldb; make; cd ..
 obj/txdb-leveldb.o: leveldb/libleveldb.a
+else
+OBJS += obj/txdb-bdb.o
+endif
+
+
+test check: test_zeitcoin FORCE
+	./test_zeitcoin
 
 # auto-generated dependencies:
 -include obj/*.P
+-include obj-test/*.P
 
 obj/build.h: FORCE
 	/bin/sh ../share/genbuild.sh obj/build.h
@@ -153,13 +162,27 @@ obj/scrypt-x86.o: scrypt-x86.S
 obj/scrypt-x86_64.o: scrypt-x86_64.S
 	$(CXX) -c $(xCXXFLAGS) -MMD -o $@ $<
 
-Lindad: $(OBJS:obj/%=obj/%)
+zeitcoind: $(OBJS:obj/%=obj/%)
 	$(CXX) $(CFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS)
 
+TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
+
+obj-test/%.o: test/%.cpp
+	$(CXX) -c $(TESTDEFS) $(CFLAGS) -MMD -MF $(@:%.o=%.d) -o $@ $<
+	@cp $(@:%.o=%.d) $(@:%.o=%.P); \
+	  sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
+	  rm -f $(@:%.o=%.d)
+
+test_zeitcoin: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
+	$(CXX) $(CFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS) $(TESTLIBS)
+
 clean:
-	-rm -f Lindad
+	-rm -f zeitcoind test_zeitcoin
 	-rm -f obj/*.o
+	-rm -f obj-test/*.o
 	-rm -f obj/*.P
+	-rm -f obj-test/*.P
 	-rm -f obj/build.h
 
 FORCE:

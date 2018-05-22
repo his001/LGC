@@ -2,36 +2,38 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
 #ifndef BITCOIN_DB_H
 #define BITCOIN_DB_H
 
-#include "serialize.h"
-#include "sync.h"
-#include "version.h"
+#include "main.h"
 
 #include <map>
 #include <string>
 #include <vector>
 
-#include <boost/filesystem/path.hpp>
 #include <db_cxx.h>
 
+class CAddress;
 class CAddrMan;
 class CBlockLocator;
 class CDiskBlockIndex;
 class CDiskTxPos;
+class CMasterKey;
 class COutPoint;
 class CTxIndex;
+class CWallet;
+class CWalletTx;
 
 extern unsigned int nWalletDBUpdated;
 
-void ThreadFlushWalletDB(const std::string& strWalletFile);
+void ThreadFlushWalletDB(void* parg);
+bool BackupWallet(const CWallet& wallet, const std::string& strDest);
 
 
 class CDBEnv
 {
 private:
+    bool fDetachDB;
     bool fDbEnvInit;
     bool fMockDb;
     boost::filesystem::path pathEnv;
@@ -71,7 +73,9 @@ public:
     bool Open(boost::filesystem::path pathEnv_);
     void Close();
     void Flush(bool fShutdown);
-    void CheckpointLSN(const std::string& strFile);
+    void CheckpointLSN(std::string strFile);
+    void SetDetach(bool fDetachDB_) { fDetachDB = fDetachDB_; }
+    bool GetDetach() { return fDetachDB; }
 
     void CloseDb(const std::string& strFile);
     bool RemoveDb(const std::string& strFile);
@@ -98,12 +102,10 @@ protected:
     DbTxn *activeTxn;
     bool fReadOnly;
 
-    explicit CDB(const std::string& strFilename, const char* pszMode="r+");
+    explicit CDB(const char* pszFile, const char* pszMode="r+");
     ~CDB() { Close(); }
-
 public:
     void Close();
-
 private:
     CDB(const CDB&);
     void operator=(const CDB&);
@@ -307,6 +309,17 @@ public:
     }
 
     bool static Rewrite(const std::string& strFile, const char* pszSkip = NULL);
+};
+
+/** Access to the (IP) address database (peers.dat) */
+class CAddrDB
+{
+private:
+    boost::filesystem::path pathAddr;
+public:
+    CAddrDB();
+    bool Write(const CAddrMan& addr);
+    bool Read(CAddrMan& addr);
 };
 
 #endif // BITCOIN_DB_H

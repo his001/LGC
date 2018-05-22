@@ -17,13 +17,9 @@
 
 #include <string>
 #include <vector>
-
-#include "chainparams.h"
 #include "bignum.h"
 #include "key.h"
 #include "script.h"
-#include "allocators.h"
-#include "util.h"
 
 static const char* pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
@@ -178,48 +174,54 @@ inline bool DecodeBase58Check(const std::string& str, std::vector<unsigned char>
 class CBase58Data
 {
 protected:
-    // the version byte(s)
-    std::vector<unsigned char> vchVersion;
+    // the version byte
+    unsigned char nVersion;
 
     // the actually encoded data
-    typedef std::vector<unsigned char, zero_after_free_allocator<unsigned char> > vector_uchar;
-    vector_uchar vchData;
+    std::vector<unsigned char> vchData;
 
     CBase58Data()
     {
-        vchVersion.clear();
+        nVersion = 0;
         vchData.clear();
     }
 
-    void SetData(const std::vector<unsigned char> &vchVersionIn, const void* pdata, size_t nSize)
+    ~CBase58Data()
     {
-        vchVersion = vchVersionIn;
+        // zero the memory, as it may contain sensitive data
+        if (!vchData.empty())
+            memset(&vchData[0], 0, vchData.size());
+    }
+
+    void SetData(int nVersionIn, const void* pdata, size_t nSize)
+    {
+        nVersion = nVersionIn;
         vchData.resize(nSize);
         if (!vchData.empty())
             memcpy(&vchData[0], pdata, nSize);
     }
 
-    void SetData(const std::vector<unsigned char> &vchVersionIn, const unsigned char *pbegin, const unsigned char *pend)
+    void SetData(int nVersionIn, const unsigned char *pbegin, const unsigned char *pend)
     {
-        SetData(vchVersionIn, (void*)pbegin, pend - pbegin);
+        SetData(nVersionIn, (void*)pbegin, pend - pbegin);
     }
 
 public:
-    bool SetString(const char* psz, unsigned int nVersionBytes = 1)
+    bool SetString(const char* psz)
     {
         std::vector<unsigned char> vchTemp;
         DecodeBase58Check(psz, vchTemp);
-        if (vchTemp.size() < nVersionBytes)
+        if (vchTemp.empty())
         {
             vchData.clear();
-            vchVersion.clear();
+            nVersion = 0;
             return false;
         }
-        vchVersion.assign(vchTemp.begin(), vchTemp.begin() + nVersionBytes);
-        vchData.resize(vchTemp.size() - nVersionBytes);
+        nVersion = vchTemp[0];
+        vchData.resize(vchTemp.size() - 1);
         if (!vchData.empty())
-            memcpy(&vchData[0], &vchTemp[nVersionBytes], vchData.size());
-        OPENSSL_cleanse(&vchTemp[0], vchData.size());
+            memcpy(&vchData[0], &vchTemp[1], vchData.size());
+        memset(&vchTemp[0], 0, vchTemp.size());
         return true;
     }
 
@@ -230,15 +232,15 @@ public:
 
     std::string ToString() const
     {
-        std::vector<unsigned char> vch = vchVersion;
+        std::vector<unsigned char> vch(1, nVersion);
         vch.insert(vch.end(), vchData.begin(), vchData.end());
         return EncodeBase58Check(vch);
     }
 
     int CompareTo(const CBase58Data& b58) const
     {
-        if (vchVersion < b58.vchVersion) return -1;
-        if (vchVersion > b58.vchVersion) return  1;
+        if (nVersion < b58.nVersion) return -1;
+        if (nVersion > b58.nVersion) return  1;
         if (vchData < b58.vchData)   return -1;
         if (vchData > b58.vchData)   return  1;
         return 0;
@@ -251,10 +253,10 @@ public:
     bool operator> (const CBase58Data& b58) const { return CompareTo(b58) >  0; }
 };
 
-/** base58-encoded addresses.
- * Public-key-hash-addresses have version 25 (or 111 testnet).
+/** base58-encoded Bitcoin addresses.
+ * Public-key-hash-addresses have version 0 (or 111 testnet).
  * The data vector contains RIPEMD160(SHA256(pubkey)), where pubkey is the serialized public key.
- * Script-hash-addresses have version 85 (or 196 testnet).
+ * Script-hash-addresses have version 5 (or 196 testnet).
  * The data vector contains RIPEMD160(SHA256(cscript)), where cscript is the serialized redemption script.
  */
 class CBitcoinAddress;
@@ -266,20 +268,28 @@ public:
     CBitcoinAddressVisitor(CBitcoinAddress *addrIn) : addr(addrIn) { }
     bool operator()(const CKeyID &id) const;
     bool operator()(const CScriptID &id) const;
-    bool operator()(const CStealthAddress &stxAddr) const;
     bool operator()(const CNoDestination &no) const;
 };
 
 class CBitcoinAddress : public CBase58Data
 {
 public:
+    enum
+    {
+        PUBKEY_ADDRESS = 48,  // LGC: address begin with 'L', 'M'51 , 'A'23
+        //SCRIPT_ADDRESS = 8,    //8,
+        SCRIPT_ADDRESS = 38,    //  'G'
+        PUBKEY_ADDRESS_TEST = 111,
+        SCRIPT_ADDRESS_TEST = 196,
+    };
+
     bool Set(const CKeyID &id) {
-        SetData(Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS), &id, 20);
+        SetData(fTestNet ? PUBKEY_ADDRESS_TEST : PUBKEY_ADDRESS, &id, 20);
         return true;
     }
 
     bool Set(const CScriptID &id) {
-        SetData(Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS), &id, 20);
+        SetData(fTestNet ? SCRIPT_ADDRESS_TEST : SCRIPT_ADDRESS, &id, 20);
         return true;
     }
 
@@ -290,10 +300,32 @@ public:
 
     bool IsValid() const
     {
-        bool fCorrectSize = vchData.size() == 20;
-        bool fKnownVersion = vchVersion == Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS) ||
-                             vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS);
-        return fCorrectSize && fKnownVersion;
+        unsigned int nExpectedSize = 20;
+        bool fExpectTestNet = false;
+        switch(nVersion)
+        {
+            case PUBKEY_ADDRESS:
+                nExpectedSize = 20; // Hash of public key
+                fExpectTestNet = false;
+                break;
+            case SCRIPT_ADDRESS:
+                nExpectedSize = 20; // Hash of CScript
+                fExpectTestNet = false;
+                break;
+
+            case PUBKEY_ADDRESS_TEST:
+                nExpectedSize = 20;
+                fExpectTestNet = true;
+                break;
+            case SCRIPT_ADDRESS_TEST:
+                nExpectedSize = 20;
+                fExpectTestNet = true;
+                break;
+
+            default:
+                return false;
+        }
+        return fExpectTestNet == fTestNet && vchData.size() == nExpectedSize;
     }
 
     CBitcoinAddress()
@@ -318,59 +350,92 @@ public:
     CTxDestination Get() const {
         if (!IsValid())
             return CNoDestination();
-        uint160 id;
-        memcpy(&id, &vchData[0], 20);
-        if (vchVersion == Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS))
+        switch (nVersion) {
+        case PUBKEY_ADDRESS:
+        case PUBKEY_ADDRESS_TEST: {
+            uint160 id;
+            memcpy(&id, &vchData[0], 20);
             return CKeyID(id);
-        else if (vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS))
+        }
+        case SCRIPT_ADDRESS:
+        case SCRIPT_ADDRESS_TEST: {
+            uint160 id;
+            memcpy(&id, &vchData[0], 20);
             return CScriptID(id);
-        else
-            return CNoDestination();
+        }
+        }
+        return CNoDestination();
     }
 
     bool GetKeyID(CKeyID &keyID) const {
-        if (!IsValid() || vchVersion != Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS))
+        if (!IsValid())
             return false;
-        uint160 id;
-        memcpy(&id, &vchData[0], 20);
-        keyID = CKeyID(id);
-        return true;
+        switch (nVersion) {
+        case PUBKEY_ADDRESS:
+        case PUBKEY_ADDRESS_TEST: {
+            uint160 id;
+            memcpy(&id, &vchData[0], 20);
+            keyID = CKeyID(id);
+            return true;
+        }
+        default: return false;
+        }
     }
 
     bool IsScript() const {
-        return IsValid() && vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS);
+        if (!IsValid())
+            return false;
+        switch (nVersion) {
+        case SCRIPT_ADDRESS:
+        case SCRIPT_ADDRESS_TEST: {
+            return true;
+        }
+        default: return false;
+        }
     }
 };
 
 bool inline CBitcoinAddressVisitor::operator()(const CKeyID &id) const         { return addr->Set(id); }
 bool inline CBitcoinAddressVisitor::operator()(const CScriptID &id) const      { return addr->Set(id); }
-bool inline CBitcoinAddressVisitor::operator()(const CStealthAddress &stxAddr) const      { return false; }
 bool inline CBitcoinAddressVisitor::operator()(const CNoDestination &id) const { return false; }
 
 /** A base58-encoded secret key */
 class CBitcoinSecret : public CBase58Data
 {
 public:
-    void SetKey(const CKey& vchSecret)
+    void SetSecret(const CSecret& vchSecret, bool fCompressed)
     {
-        assert(vchSecret.IsValid());
-        SetData(Params().Base58Prefix(CChainParams::SECRET_KEY), vchSecret.begin(), vchSecret.size());
-        if (vchSecret.IsCompressed())
+        assert(vchSecret.size() == 32);
+        SetData(128 + (fTestNet ? CBitcoinAddress::PUBKEY_ADDRESS_TEST : CBitcoinAddress::PUBKEY_ADDRESS), &vchSecret[0], vchSecret.size());
+        if (fCompressed)
             vchData.push_back(1);
     }
 
-    CKey GetKey()
+    CSecret GetSecret(bool &fCompressedOut)
     {
-        CKey ret;
-        ret.Set(&vchData[0], &vchData[32], vchData.size() > 32 && vchData[32] == 1);
-        return ret;
+        CSecret vchSecret;
+        vchSecret.resize(32);
+        memcpy(&vchSecret[0], &vchData[0], 32);
+        fCompressedOut = vchData.size() == 33;
+        return vchSecret;
     }
 
     bool IsValid() const
     {
-        bool fExpectedFormat = vchData.size() == 32 || (vchData.size() == 33 && vchData[32] == 1);
-        bool fCorrectVersion = vchVersion == Params().Base58Prefix(CChainParams::SECRET_KEY);
-        return fExpectedFormat && fCorrectVersion;
+        bool fExpectTestNet = false;
+        switch(nVersion)
+        {
+            case (128 + CBitcoinAddress::PUBKEY_ADDRESS):
+                break;
+
+            case (128 + CBitcoinAddress::PUBKEY_ADDRESS_TEST):
+                fExpectTestNet = true;
+                break;
+
+            default:
+                return false;
+        }
+        return fExpectTestNet == fTestNet && (vchData.size() == 32 || (vchData.size() == 33 && vchData[32] == 1));
     }
 
     bool SetString(const char* pszSecret)
@@ -383,9 +448,9 @@ public:
         return SetString(strSecret.c_str());
     }
 
-    CBitcoinSecret(const CKey& vchSecret)
+    CBitcoinSecret(const CSecret& vchSecret, bool fCompressed)
     {
-        SetKey(vchSecret);
+        SetSecret(vchSecret, fCompressed);
     }
 
     CBitcoinSecret()
@@ -393,30 +458,4 @@ public:
     }
 };
 
-
-template<typename K, int Size, CChainParams::Base58Type Type> class CBitcoinExtKeyBase : public CBase58Data
-{
-public:
-    void SetKey(const K &key) {
-        unsigned char vch[Size];
-        key.Encode(vch);
-        SetData(Params().Base58Prefix(Type), vch, vch+Size);
-    }
-
-    K GetKey() {
-        K ret;
-        ret.Decode(&vchData[0], &vchData[Size]);
-        return ret;
-    }
-
-    CBitcoinExtKeyBase(const K &key) {
-        SetKey(key);
-    }
-
-    CBitcoinExtKeyBase() {}
-};
-
-typedef CBitcoinExtKeyBase<CExtKey, 74, CChainParams::EXT_SECRET_KEY> CBitcoinExtKey;
-typedef CBitcoinExtKeyBase<CExtPubKey, 74, CChainParams::EXT_PUBLIC_KEY> CBitcoinExtPubKey;
-
-#endif // BITCOIN_BASE58_H
+#endif
