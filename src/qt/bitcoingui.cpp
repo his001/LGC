@@ -192,7 +192,9 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 BitcoinGUI::~BitcoinGUI()
 {
     if(trayIcon) // Hide tray icon, as deleting will let it linger until quit (on Ubuntu)
+    {
         trayIcon->hide();
+    }
 #ifdef Q_OS_MAC
     delete appMenuBar;
 #endif
@@ -662,6 +664,7 @@ void BitcoinGUI::closeEvent(QCloseEvent *event)
         if(!clientModel->getOptionsModel()->getMinimizeToTray() &&
            !clientModel->getOptionsModel()->getMinimizeOnClose())
         {
+            //emit MSSQLDbCtrl.MSSQLdisconnectFromServerRequested();//
             qApp->quit();
         }
 #endif
@@ -984,3 +987,4 @@ void BitcoinGUI::toggleHidden()
 {
     showNormalIfMinimized(true);
 }
+

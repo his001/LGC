@@ -19,12 +19,12 @@
 #include <boost/random/uniform_int_distribution.hpp>
 using namespace std;
 using namespace boost;
-////////////////////////////////////////////////////////////////////////////////////////
-#include <QSqlDatabase> //
-#include <QSqlQuery> //
-#include <QtSql>
-#include <QSqlError> //
-////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//#include <QSqlDatabase> //
+//#include <QSqlQuery> //
+//#include <QtSql>
+//#include <QSqlError> //
+//////////////////////////////////////////////////////////////////////////////////////////
 
 //
 // Global state
@@ -1872,27 +1872,28 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
     nTimeBestReceived = GetTime();
     nTransactionsUpdated++;
 
-    QSqlDatabase msdb = QSqlDatabase::addDatabase("QODBC", "MSSQLDB");
-    if(!msdb.open())
-    {
-       msdb.setDatabaseName(QString("DRIVER={SQL Server};SERVER=localhost;PORT=1433;DATABASE=LGC;UID=his001;PWD=gkgk^^12") );
-    }
-    if(msdb.open())
-    {
-        QSqlQueryModel *model = new QSqlQueryModel;
-        QString query;
-        //query=("insert into TBL (memo) values ( '"+ GetHash() +"' ) " );
+//    QSqlDatabase msdb = QSqlDatabase::addDatabase("QODBC", "MSSQLDB");
+//    if(!msdb.open())
+//    {
+//       msdb.setDatabaseName(QString("DRIVER={SQL Server};SERVER=localhost;PORT=1433;DATABASE=LGC;UID=his001;PWD=gkgk^^12") );
+//    }
+//    if(msdb.open())
+//    {
+//        QSqlQueryModel *model = new QSqlQueryModel;
+//        QString query;
+//        //query=("insert into TBL (memo) values ( '"+ GetHash() +"' ) " );
 
-        query=("insert into TBL (memo) values ( 'SetBestChain: new best=%s  height=%d  trust=%s  date=%s ') ",
-              hashBestChain.ToString().c_str(), nBestHeight, nBestChainTrust.ToString().c_str(),
-              DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()).c_str());
+//        query=("insert into TBL (memo) values ( 'SetBestChain: new best=%s  height=%d  trust=%s  date=%s ') ",
+//              hashBestChain.ToString().c_str(), nBestHeight, nBestChainTrust.ToString().c_str(),
+//              DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()).c_str());
 
-        model->setQuery(query, msdb);
-        printf("MSSQL CONNECTED");
-    }else{
-        printf("MSSQL NOT CONNECTED");
-    }
-    msdb.close();
+//        model->setQuery(query, msdb);
+//        printf("MSSQL CONNECTED");
+//    }
+//    else{
+//        printf("MSSQL NOT CONNECTED");
+//    }
+//    msdb.close();
 
     printf("SetBestChain: new best=%s  height=%d  trust=%s  date=%s\n",
       hashBestChain.ToString().c_str(), nBestHeight, nBestChainTrust.ToString().c_str(),

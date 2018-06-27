@@ -366,7 +366,7 @@ bool GetMyExternalIP(CNetAddr& ipRet)
         //  <?php echo $_SERVER["REMOTE_ADDR"]; ?>
         if (nHost == 1)
         {
-            addrConnect = CService("122.35.243.23",80); // http://ip.09coin.com/checkip.dyndns.org
+            addrConnect = CService("ip.09coin.com",80); // http://ip.09coin.com/checkip.dyndns.org
 
             if (nLookup == 1)
             {

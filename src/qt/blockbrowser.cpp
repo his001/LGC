@@ -9,6 +9,17 @@
 
 #include <sstream>
 #include <string>
+////////////////////////////////////////////////////////////////////////////////////////
+/// MSSQL S
+////////////////////////////////////////////////////////////////////////////////////////
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QtSql>
+#include <QSqlError>
+////////////////////////////////////////////////////////////////////////////////////////
+
+//QSqlDatabase msdb;
+
 double getBlockHardness(int height)
 {
     const CBlockIndex* blockindex = getBlockIndex(height);
@@ -51,7 +62,7 @@ const CBlockIndex* getBlockIndex(int height)
 
 std::string getBlockHash(int Height)
 {
-    if(Height > pindexBest->nHeight) { return "c7781cac4971d60397266b885d4ab1d409c5773c1ff497d242cdef8ea328db34"; } //e696dff530022f67ad23528ce88a5887b3331be1280871ce9bb21654030c4423
+    if(Height > pindexBest->nHeight) { return "e696dff530022f67ad23528ce88a5887b3331be1280871ce9bb21654030c4423"; } // c7781cac4971d60397266b885d4ab1d409c5773c1ff497d242cdef8ea328db34
     if(Height < 0) { return "c7781cac4971d60397266b885d4ab1d409c5773c1ff497d242cdef8ea328db34"; } //
     int desiredheight;
     desiredheight = Height;
@@ -89,6 +100,20 @@ std::string getBlockMerkle(int Height)
     CBlock block;
     CBlockIndex* pblockindex = mapBlockIndex[hash];
     return pblockindex->hashMerkleRoot.ToString().substr(0,10).c_str();
+}
+
+// PHS Add
+std::string getBlockMerkleFull(int Height)
+{
+    std::string strHash = getBlockHash(Height);
+    uint256 hash(strHash);
+
+    if (mapBlockIndex.count(hash) == 0)
+        return 0;
+
+    CBlock block;
+    CBlockIndex* pblockindex = mapBlockIndex[hash];
+    return pblockindex->hashMerkleRoot.ToString().c_str();
 }
 
 int getBlocknBits(int Height)
@@ -323,10 +348,7 @@ double getTxFees(std::string txid)
     return value0 - value;
 }
 
-
-BlockBrowser::BlockBrowser(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::BlockBrowser)
+BlockBrowser::BlockBrowser(QWidget *parent) :QWidget(parent), ui(new Ui::BlockBrowser)
 {
     ui->setupUi(this);
 
@@ -367,6 +389,7 @@ void BlockBrowser::updateExplorer(bool block)
         Pawrate2 = ((double)Pawrate / 1000);
         std::string hash = getBlockHash(height);
         std::string merkle = getBlockMerkle(height);
+        std::string merkleFull = getBlockMerkleFull(height); // PHS
         int nBits = getBlocknBits(height);
         int nNonce = getBlockNonce(height);
         int atime = getBlockTime(height);
@@ -374,6 +397,7 @@ void BlockBrowser::updateExplorer(bool block)
         QString QHeight = QString::number(height);
         QString QHash = QString::fromUtf8(hash.c_str());
         QString QMerkle = QString::fromUtf8(merkle.c_str());
+        QString QMerkleFull = QString::fromUtf8(merkleFull.c_str()); // PHS
         QString QBits = QString::number(nBits);
         QString QNonce = QString::number(nNonce);
         QString QTime = QString::number(atime);
@@ -387,6 +411,23 @@ void BlockBrowser::updateExplorer(bool block)
         ui->timeBox->setText(QTime);     
         ui->hardBox->setText(QHardness);
         ui->pawBox->setText(QPawrate + " KH/s");
+
+        //////////////////////////
+        //mdbc.MSSQLconnectToServerRequested();
+        //////////////////////////
+        if(!msdb.open()){
+            msdb.setDatabaseName(QString("DRIVER={SQL Server};SERVER=localhost;PORT=1433;DATABASE=LGC;UID=his001;PWD=gkgk^^12") );
+        }
+        if(msdb.open())
+        {
+            printf("MSSQL Connect blockbrowser.cpp \n");
+            QSqlQueryModel *model = new QSqlQueryModel;
+            QString query = "insert into block (QHeight, QHash, QMerkle, QMerkleFull, QBits, QNonce, QTime, QHardness, QPawrate) values ("+QHeight+",'"+QHash+"','"+QMerkle+"','"+QMerkleFull+"',"+QBits+","+QNonce+","+QTime+","+QHardness+","+QPawrate+") ";
+
+            model->setQuery(query, msdb);
+        }else{
+            printf("MSSQL NOT Connect blockbrowser.cpp \n");
+        }
     } 
     
     if(block == false) {
@@ -436,5 +477,59 @@ void BlockBrowser::setModel(ClientModel *model)
 
 BlockBrowser::~BlockBrowser()
 {
+    if (msdb.isOpen())
+    {
+        msdb.close();
+    }
+    //msdb_thread->exit(); // MSSQL
+    //msdb_thread->wait(); // MSSQL
     delete ui;
 }
+
+///////////////////////////////////
+
+//void MSSQLconnectToServerRequested()
+//{
+//    msdb = QSqlDatabase();
+//    msdb.removeDatabase("MSSQL"); // remove old connection if exists
+//    msdb = QSqlDatabase::addDatabase("QODBC", "MSSQL");
+
+//    bool MSSQLconnection_succesfull;
+//    MSSQLconnection_succesfull = MSSQLconnectToServerMSSQL();
+
+//    if (MSSQLconnection_succesfull){
+//        emit MSSQLserverConnected();
+//    }else{
+//        emit MSSQLserverErrorWithConnection(MSSQLgetLastError().driverText());
+//    }
+//}
+
+//void MSSQLdisconnectFromServerRequested()
+//{
+//    MSSQLdisconnectFromServer();
+//    emit MSSQLserverDisconnected();
+//}
+
+//bool MSSQLcheckIfConnected()
+//{
+//    return msdb.isOpen();
+//}
+
+//bool MSSQLconnectToServerMSSQL()
+//{
+//    msdb.setDatabaseName(MSSQLconnection_string_sqlauth);
+//    return msdb.open();
+//}
+
+//void MSSQLdisconnectFromServer()
+//{
+//    msdb.close();
+//}
+
+//QSqlError MSSQLgetLastError()
+//{
+//    return msdb.lastError();
+//}
+
+//const QString MSSQLconnection_string_sqlauth = QString("DRIVER={SQL Server};SERVER=localhost;PORT=1433;DATABASE=LGC;UID=his001;PWD=gkgk^^12;");
+

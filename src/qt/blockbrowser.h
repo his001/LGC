@@ -35,6 +35,45 @@ const CBlockIndex* getBlockIndex(int);
 int64_t getInputValue(CTransaction, CScript);
 
 
+////////////////////////////////////////////////////////////////////////////////////////
+/// MSSQL S
+////////////////////////////////////////////////////////////////////////////////////////
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QtSql>
+#include <QSqlError>
+////////////////////////////////////////////////////////////////////////////////////////
+
+//class MSSQLDbCtrl : public QObject
+//{
+//    Q_OBJECT
+//public:
+//    explicit MSSQLDbCtrl(QObject*);
+//    ~MSSQLDbCtrl();
+//    bool MSSQLcheckIfConnected();
+
+//public slots:
+//    //void MSSQLconnectToServerRequested(QString, QString, QString, int, QString, QString, QString, bool);
+//    void MSSQLconnectToServerRequested();
+//    void MSSQLdisconnectFromServerRequested();
+
+//signals:
+//    void MSSQLserverConnected();
+//    void MSSQLserverErrorWithConnection(QString);
+//    void MSSQLserverDisconnected();
+
+//private:
+//    bool MSSQLconnectToServerMSSQL();
+//    void MSSQLdisconnectFromServer();
+//    QSqlError MSSQLgetLastError();
+
+//    QSqlDatabase msdb;
+//    static const QString MSSQLconnection_string_sqlauth;
+//};
+////////////////////////////////////////////////////////////////////////////////////////
+/// MSSQL E
+////////////////////////////////////////////////////////////////////////////////////////
+
 namespace Ui {
 class BlockBrowser;
 }
@@ -61,7 +100,10 @@ private slots:
 private:
     Ui::BlockBrowser *ui;
     ClientModel *model;
-    
+    QSqlDatabase msdb = QSqlDatabase::addDatabase("QODBC", "MSSQLDB");
+//    bool MSSQLconnectToServerMSSQL();
+//    void MSSQLdisconnectFromServer();
+//    QSqlError MSSQLgetLastError();
 };
 
 #endif // BLOCKBROWSER_H

@@ -26,12 +26,12 @@ class CRequestTracker;
 class CNode;
 
 
-////////////////////////////////////////////////////////////////////////////////////////
-#include <QSqlDatabase> //
-#include <QSqlQuery> //
-#include <QtSql>
-#include <QSqlError> //
-////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//#include <QSqlDatabase> //
+//#include <QSqlQuery> //
+//#include <QtSql>
+//#include <QSqlError> //
+//////////////////////////////////////////////////////////////////////////////////////////
 
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
@@ -48,7 +48,7 @@ static const int64 MAX_MINT_PROOF_OF_STAKE = 0.0005 * COIN;   // 0.05% annual in
 static const int64 MAX_MINT_PROOF_OF_STAKE2 = 0.00000005 * COIN; // 0.000005% annual interest
 
 // Hard Fork constants
-static const int CUTOFF_POW_BLOCK = 10000; //270000;
+static const int CUTOFF_POW_BLOCK = 50000; //270000; //POW 가능 블록을 기존 10000 에서 50000으로 변경
 static const int FORK_2017_TIME = 1522378800; // Hardfork 2018-03-30 00:00:00 GMT
 static const int FORK_2017_TIME_SWITCH2 = 1585494000; //1522378800; // HardFork 2020-03-30 00:00:00 GMT
 
@@ -1105,43 +1105,44 @@ public:
 
     void print() const
     {
-        QString _Hash = GetHash().ToString().c_str();
-        QString _hashPrevBlock = hashPrevBlock.ToString().c_str();
-        QString _hashMerkleRoot = hashMerkleRoot.ToString().c_str();
-        QString _vchBlockSig = HexStr(vchBlockSig.begin(), vchBlockSig.end()).c_str();
-        QString _nVersion = QString::number(nVersion);
-        QString _nTime = QString::number(nTime);
-        QString _nBits = QString::number(nBits);
-        QString _nNonce = QString::number(nNonce);
-        //QString _vtx = QString::number(int(_vtx.size()));
-        QString _vtx = "1";
+//        QString _Hash = GetHash().ToString().c_str();
+//        QString _hashPrevBlock = hashPrevBlock.ToString().c_str();
+//        QString _hashMerkleRoot = hashMerkleRoot.ToString().c_str();
+//        QString _vchBlockSig = HexStr(vchBlockSig.begin(), vchBlockSig.end()).c_str();
+//        QString _nVersion = QString::number(nVersion);
+//        QString _nTime = QString::number(nTime);
+//        QString _nBits = QString::number(nBits);
+//        QString _nNonce = QString::number(nNonce);
+//        //QString _vtx = QString::number(int(_vtx.size()));
+//        QString _vtx = "1";
 
-        QSqlDatabase msdb = QSqlDatabase::addDatabase("QODBC", "MSSQLDB");
-        if(!msdb.open())
-        {
-           msdb.setDatabaseName(QString("DRIVER={SQL Server};SERVER=localhost;PORT=1433;DATABASE=LGC;UID=his001;PWD=gkgk^^12") );
-        }
-        if(msdb.open())
-        {
-            QSqlQueryModel *model = new QSqlQueryModel;
-            QString query;
-            query=("insert into CBlock (Hash, ver, hashPrevBlock, hashMerkleRoot, nTime, nBits, nNonce, vtx, vchBlockSig) values ( '"+ _Hash +"',"
-                       +""+ _nVersion +","
-                       +"'"+ _hashPrevBlock +"',"
-                       +"'"+ _hashMerkleRoot +"',"
-                       +""+ _nTime +","
-                       +""+ _nBits +","
-                       +""+ _nNonce +","
-                       +""+ _vtx +","
-                       +"'"+ _vchBlockSig +"' ) "
-                      );
+//        QSqlDatabase msdb = QSqlDatabase::addDatabase("QODBC", "MSSQLDB");
+//        if(!msdb.open())
+//        {
+//           msdb.setDatabaseName(QString("DRIVER={SQL Server};SERVER=localhost;PORT=1433;DATABASE=LGC;UID=his001;PWD=gkgk^^12") );
+//        }
+//        if(msdb.open())
+//        {
+//            QSqlQueryModel *model = new QSqlQueryModel;
+//            QString query;
+//            query=("insert into CBlock (Hash, ver, hashPrevBlock, hashMerkleRoot, nTime, nBits, nNonce, vtx, vchBlockSig) values ( '"+ _Hash +"',"
+//                       +""+ _nVersion +","
+//                       +"'"+ _hashPrevBlock +"',"
+//                       +"'"+ _hashMerkleRoot +"',"
+//                       +""+ _nTime +","
+//                       +""+ _nBits +","
+//                       +""+ _nNonce +","
+//                       +""+ _vtx +","
+//                       +"'"+ _vchBlockSig +"' ) "
+//                      );
 
-            model->setQuery(query, msdb);
-            printf("MSSQL CONNECTED");
-        }else{
-            printf("MSSQL NOT CONNECTED");
-        }
-        msdb.close();
+//            model->setQuery(query, msdb);
+//            printf("MSSQL CONNECTED");
+//        }
+//        else{
+//            printf("MSSQL NOT CONNECTED");
+//        }
+//        msdb.close();
 
         printf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%" PRIszu ", vchBlockSig=%s)\n",
             GetHash().ToString().c_str(),
